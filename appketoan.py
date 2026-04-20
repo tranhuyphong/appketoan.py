@@ -8,15 +8,6 @@ from data import SYSTEM_PROMPT, LESSONS
 # --- CẤU HÌNH ---
 st.set_page_config(page_title="Kế Toán Slay 💅", layout="wide", page_icon="💅")
 
-# CSS cho giao diện
-st.markdown("""
-    <style>
-    .stApp { background-color: #fff5f8; }
-    .stButton>button { background-color: #ff4bad; color: white; border-radius: 20px; font-weight: bold; }
-    .stProgress > div > div > div > div { background-color: #ff4bad; }
-    </style>
-    """, unsafe_allow_html=True)
-
 try:
     api_key = st.secrets.get("GEMINI_API_KEY") or "YOUR_API_KEY_HERE"
     genai.configure(api_key=api_key)
@@ -43,7 +34,8 @@ with st.sidebar:
         st.rerun()
 
 # --- NỘI DUNG CHÍNH ---
-st.title(f"📍 Chặng {st.session_state.current_lesson}: {LESSONS[st.session_state.current_lesson]['title']}")
+# Đã sửa lỗi lặp từ "Chặng"
+st.title(f"{LESSONS[st.session_state.current_lesson]['title']}")
 
 tabs = st.tabs(["📚 Bài Học", "🎮 Quiz Tích Điểm", "📸 AI Soi Hóa Đơn", "📊 AI Chấm Excel", "🤝 Phỏng Vấn Giả Lập"])
 
@@ -87,11 +79,10 @@ with tabs[2]:
                 res = model_flash.generate_content([prompt, img])
                 st.write(res.text)
 
-# TAB 4: AI EXCEL (ĐÃ CẬP NHẬT HOÀN CHỈNH)
+# TAB 4: AI EXCEL
 with tabs[3]:
     st.subheader("📊 Trợ Lý Kiểm Toán AI")
     
-    # Bước 1: Tải đề bài
     st.write("👉 **Bước 1: Tải bài tập mẫu về làm trước nha**")
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
@@ -112,7 +103,6 @@ with tabs[3]:
     )
     
     st.markdown("---")
-    # Bước 2: Nộp bài chấm điểm
     st.write("👉 **Bước 2: Nộp file em đã giải vào đây để chị chấm!**")
     file_ex = st.file_uploader("Nộp file Excel (.xlsx)", type=['xlsx'])
     if file_ex:
