@@ -40,8 +40,11 @@ st.title(f"{LESSONS[st.session_state.current_lesson]['title']}")
 tabs = st.tabs(["📚 Bài Học", "🎮 Quiz Tích Điểm", "📸 AI Soi Hóa Đơn", "📊 AI Chấm Excel", "🤝 Phỏng Vấn Giả Lập"])
 
 # TAB 1: BÀI HỌC
+# TAB 1: BÀI HỌC
 with tabs[0]:
     st.info(LESSONS[st.session_state.current_lesson]["theory"])
+    st.markdown("---")
+    st.warning("👉 **Nạp xong kiến thức rồi thì mạnh dạn bấm sang tab '🎮 Quiz Tích Điểm' ở bên cạnh để làm bài test kiếm Xu qua màn nha em ơi!** 💸")
 
 # TAB 2: QUIZ
 with tabs[1]:
