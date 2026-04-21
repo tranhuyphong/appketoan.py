@@ -5,7 +5,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 
-from data.jobs.py import jobs
+from jobs import jobs
 from engine.boss_ai import boss_msg
 from engine.ai_grader import grade
 
