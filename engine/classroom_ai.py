@@ -1,22 +1,28 @@
-import streamlit as st
-from openai import OpenAI
-
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
 def classroom_chat(history, user_input):
 
     messages = [
         {
             "role": "system",
             "content": """
-Bạn là giáo viên kế toán.
+Bạn là giáo viên kế toán đang dạy học sinh.
 
-Cách dạy:
-- Hỏi học sinh từng bước
-- KHÔNG đưa đáp án ngay
-- Nếu sai: gợi ý
-- Nếu đúng: khen + nâng level
-- Dạy như lớp học thật
+LUẬT:
+1. Luôn bắt đầu bằng việc giảng ngắn (1-2 câu)
+2. SAU ĐÓ PHẢI đặt 1 câu hỏi cụ thể
+3. KHÔNG nói lan man
+4. KHÔNG cho đáp án ngay
+
+Khi học sinh trả lời:
+- Nếu đúng: khen + hỏi tiếp
+- Nếu sai: gợi ý + hỏi lại
+
+Luôn giữ format:
+
+📘 Giảng:
+...
+
+❓ Câu hỏi:
+...
 """
         }
     ]
@@ -29,6 +35,4 @@ Cách dạy:
         messages=messages
     )
 
-    reply = res.choices[0].message.content
-
-    return reply
+    return res.choices[0].message.content
