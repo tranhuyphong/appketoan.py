@@ -1,18 +1,21 @@
 curriculum = [
     {
-        "module_name": "THE APPRENTICE",
-        "units": [
+        "lesson_name": "Phương trình kế toán",
+
+        "flow": [
             {
-                "unit_name": "Phương trình kế toán",
-                "lessons": [
-                    {
-                        "lesson_name": "Cơ bản",
-                        "theory": "Tài sản = Nợ phải trả + VCSH",
-                        "question": "Tài sản = ?",
-                        "options": ["Chi phí", "Nợ + VCSH", "Doanh thu"],
-                        "correct": 1
-                    }
-                ]
+                "type": "teach",
+                "content": "Phương trình kế toán là: Tài sản = Nợ phải trả + Vốn chủ sở hữu"
+            },
+            {
+                "type": "ask",
+                "question": "Nếu tài sản tăng 100 thì phải thay đổi gì?"
+            },
+            {
+                "type": "check",
+                "answer_keywords": ["nợ", "vốn", "tăng"],
+                "reward": 10,
+                "penalty": -5
             }
         ]
     }
