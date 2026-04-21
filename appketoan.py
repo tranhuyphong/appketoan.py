@@ -34,50 +34,51 @@ menu = st.sidebar.radio("Menu", [
     "🎓 Lớp học AI"
 ]) # Đảm bảo có đủ dấu đóng ngoặc tròn ) ở đây
 # ================= HỌC =================
-if menu == "📘 Học":
-    lesson = curriculum[0]["units"][0]["lessons"][0]
+elif menu == "🎓 Lớp học AI":
 
-    st.subheader("Bài học")
-    st.info(lesson["theory"])
+    st.header("🎓 Lớp học chuẩn giáo dục")
 
-    ans = st.radio(lesson["question"], lesson["options"])
+    # ===== INIT =====
+    if "q_index" not in st.session_state:
+        st.session_state.q_index = 0
 
-    if st.button("Nộp"):
-        if lesson["options"].index(ans) == lesson["correct"]:
-            st.success("Đúng +10 coins")
+    if "coins" not in st.session_state:
+        st.session_state.coins = 100
+
+    q = question_bank[st.session_state.q_index]
+
+    # ===== HIỂN THỊ =====
+    st.subheader(f"Câu hỏi {q['id']}")
+    st.write(q["question"])
+
+    answer = st.radio("Chọn đáp án:", q["options"])
+
+    # ===== NỘP =====
+    if st.button("Nộp bài"):
+
+        correct = q["options"].index(answer) == q["correct"]
+
+        # 📊 TRACK SKILL
+        update_progress(q["skill"], correct, st.session_state)
+
+        if correct:
+            st.success("✅ Đúng +10 coins")
             st.session_state.coins += 10
+
+            st.info(q["explain"])
+
+            if st.button("Câu tiếp theo"):
+                st.session_state.q_index += 1
+                st.rerun()
+
         else:
-            st.error("Sai -5 coins")
+            st.error("❌ Sai -5 coins")
             st.session_state.coins -= 5
 
-# ================= ĐI LÀM =================
-elif menu == "💼 Đi làm":
-    task = jobs[0]["tasks"][0]
-
-    st.subheader("Công việc hôm nay")
-
-    st.info(boss_msg(task))
-
-    st.write(task["description"])
-
-    user = st.text_input("Nhập bút toán")
-
-    if st.button("Nộp task"):
-        if user.lower() in task["correct"].lower():
-            st.success("+20 coins")
-            st.session_state.coins += 20
-        else:
-            st.error("-10 coins")
-            st.session_state.coins -= 10
-
-# ================= AI GRADER =================
-elif menu == "🤖 Chấm bút toán":
-    entry = st.text_area("Nhập bút toán")
-
-    if st.button("Chấm"):
-        st.write(grade(entry))
-
-# ================= DICTIONARY =================
+            # 🤖 AI DẠY LẠI
+            hint = teacher_explain(q["question"], answer)
+            st.warning("🤖 Gợi ý:")
+            st.write(hint)
 # ================= DICTIONARY =================
 elif menu == "📚 Từ điển":
     st.header("📚 Từ điển kế toán") # Thêm header cho rõ ràng
