@@ -1,4 +1,5 @@
 import streamlit as st
+from engine.classroom_ai import classroom_chat
 from data.curriculum import curriculum
 from data.dictionary import dictionary
 import sys
@@ -27,6 +28,7 @@ menu = st.sidebar.radio("Menu", [
     "💼 Đi làm",
     "🤖 Chấm bút toán",
     "📚 Từ điển"
+    "🎓 Lớp học AI",
 ])
 
 # ================= HỌC =================
@@ -79,3 +81,59 @@ elif menu == "📚 Từ điển":
 
     if key in dictionary:
         st.success(dictionary[key])
+        elif menu == "🎓 Lớp học AI":
+
+    st.header("🎓 Lớp học AI (Real-time)")
+
+    # ===== INIT STATE =====
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    if "coins" not in st.session_state:
+        st.session_state.coins = 100
+
+    # ===== HIỂN THỊ CHAT =====
+    for msg in st.session_state.chat_history:
+        if msg["role"] == "user":
+            st.markdown(f"🧑‍🎓 **Bạn:** {msg['content']}")
+        else:
+            st.markdown(f"👨‍🏫 **Giáo viên:** {msg['content']}")
+
+    st.divider()
+
+    # ===== INPUT =====
+    user_input = st.text_input("Nhập câu trả lời hoặc câu hỏi")
+
+    if st.button("Gửi"):
+        if user_input.strip() != "":
+
+            # lưu câu hỏi
+            st.session_state.chat_history.append({
+                "role": "user",
+                "content": user_input
+            })
+
+            # gọi AI
+            reply = classroom_chat(
+                st.session_state.chat_history,
+                user_input
+            )
+
+            # lưu phản hồi
+            st.session_state.chat_history.append({
+                "role": "assistant",
+                "content": reply
+            })
+
+            # 🎮 GAME HOÁ
+            if "đúng" in reply.lower():
+                st.session_state.coins += 10
+            else:
+                st.session_state.coins -= 5
+
+            st.rerun()
+
+    # ===== RESET =====
+    if st.button("🔄 Reset lớp học"):
+        st.session_state.chat_history = []
+        st.rerun()
