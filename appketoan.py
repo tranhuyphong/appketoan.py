@@ -26,44 +26,57 @@ def init_state():
 
 init_state()
 
-# ================= LOGIN =================
+# ================= LOGIN / REGISTER =================
 if "user" not in st.session_state:
+    st.title("🚀 PHONG AI ACCOUNTING")
+    
+    # Sử dụng Tabs để phân biệt rõ ràng Đăng nhập và Đăng ký
+    tab1, tab2 = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký tài khoản"])
 
-    st.title("🔐 Login")
+    with tab1:
+        login_email = st.text_input("Email", key="login_email")
+        login_password = st.text_input("Password", type="password", key="login_pw")
+        
+        if st.button("Đăng nhập"):
+            try:
+                res = supabase.auth.sign_in_with_password({
+                    "email": login_email,
+                    "password": login_password
+                })
+                if res.user:
+                    st.session_state.user = res.user.email
+                    # Kiểm tra và khởi tạo dữ liệu trong table users
+                    data = supabase.table("users").select("*").eq("email", st.session_state.user).execute()
+                    if len(data.data) > 0:
+                        st.session_state.coins = data.data[0]["coins"]
+                    else:
+                        supabase.table("users").insert({"email": st.session_state.user, "coins": 100}).execute()
+                    st.rerun()
+            except Exception as e:
+                st.error("Sai tài khoản hoặc mật khẩu!")
 
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        res = supabase.auth.sign_in_with_password({
-            "email": email,
-            "password": password
-        })
-
-        if res.user:
-            st.session_state.user = res.user.email
-
-            data = supabase.table("users").select("*").eq("email", st.session_state.user).execute()
-
-            if len(data.data) > 0:
-                st.session_state.coins = data.data[0]["coins"]
+    with tab2:
+        reg_email = st.text_input("Email đăng ký", key="reg_email")
+        reg_password = st.text_input("Password đăng ký", type="password", key="reg_pw")
+        confirm_password = st.text_input("Xác nhận Password", type="password", key="reg_pw_conf")
+        
+        if st.button("Thực hiện Đăng ký"):
+            if reg_password != confirm_password:
+                st.warning("Mật khẩu xác nhận không khớp!")
+            elif len(reg_password) < 6:
+                st.warning("Mật khẩu phải có ít nhất 6 ký tự!")
             else:
-                supabase.table("users").insert({
-                    "email": st.session_state.user,
-                    "coins": 100
-                }).execute()
+                try:
+                    # Đăng ký tài khoản vào Supabase Auth
+                    supabase.auth.sign_up({
+                        "email": reg_email,
+                        "password": reg_password
+                    })
+                    st.success("Tạo tài khoản thành công! Vui lòng kiểm tra email (nếu cần) và qua tab Đăng nhập.")
+                except Exception as e:
+                    st.error(f"Lỗi: {e}")
 
-            st.rerun()
-        else:
-            st.error("Sai tài khoản")
-
-    if st.button("Register"):
-        supabase.auth.sign_up({
-            "email": email,
-            "password": password
-        })
-        st.success("Tạo tài khoản thành công")
-
+    # Dừng app tại đây nếu chưa logged in để không hiện các phần dưới
     st.stop()
 
 # ================= SAVE =================
