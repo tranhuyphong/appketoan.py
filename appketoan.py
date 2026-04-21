@@ -409,21 +409,62 @@ elif menu == "📊 Dashboard":
             st.warning("🥉 Rank: Beginner")
 elif menu == "🧾 Case Study":
 
-    st.header("🧾 Case Study - Tháng 1")
+    st.header("🧾 Case Study - Mô phỏng doanh nghiệp")
 
     case = case_studies[0]
 
+    st.subheader(case["name"])
+
+    user_answers = []
     score = 0
 
+    # ===== HIỂN THỊ =====
     for i, trans in enumerate(case["transactions"]):
-        st.write(f"{i+1}. {trans}")
+        st.markdown(f"""
+        <div class='card'>
+        <b>Nghiệp vụ {i+1}:</b><br>
+        {trans}
+        </div>
+        """, unsafe_allow_html=True)
+
         ans = st.text_input("Định khoản", key=f"case_{i}")
+        user_answers.append(ans)
 
-        if ans.lower() in case["answers"][i].lower():
-            score += 1
+    # ===== SUBMIT =====
+    if st.button("🚀 Chấm bài"):
 
-    if st.button("Chấm Case"):
-        st.write(f"Điểm: {score}/{len(case['answers'])}")
+        for i in range(len(case["answers"])):
+
+            if user_answers[i].lower() in case["answers"][i].lower():
+                score += 1
+
+        percent = score / len(case["answers"]) * 100
+
+        st.session_state.percent = percent
+
+        # ===== HIỂN THỊ =====
+        st.success(f"🎯 Điểm: {round(percent,1)}%")
+        st.progress(percent / 100)
+
+        if percent >= 70:
+            st.balloons()
+            st.success("🎓 ĐẬU!")
+        else:
+            st.error("❌ RỚT!")
+
+        # ===== GIẢI THÍCH =====
+        st.subheader("📘 Đáp án")
+
+        for i, ans in enumerate(case["answers"]):
+            st.write(f"{i+1}. {ans}")
+
+        # ===== AI FEEDBACK =====
+        try:
+            feedback = grade(str(user_answers))
+            st.info("🤖 Nhận xét AI:")
+            st.write(feedback)
+        except:
+            st.warning("AI offline")
 elif menu == "🏆 Thi":
 
     st.header("🏆 Thi cuối khóa")
