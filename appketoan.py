@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import datetime
 from supabase import create_client
+from data.career_tasks import career_tasks
 
 # ================= SUPABASE =================
 # Sửa từ "wjwtowmdcdkpryxcqqty" thành đường dẫn đầy đủ:
@@ -207,7 +208,6 @@ elif menu == "🎓 Lớp học AI (Chat)":
         st.rerun()
 
 # ================= ĐI LÀM =================
-from data.career_tasks import career_tasks
 
 elif menu == "💼 Đi làm":
 
