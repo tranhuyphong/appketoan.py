@@ -28,37 +28,37 @@ st.metric("💰 Coins", st.session_state.coins)
 # ===== MENU =====
 menu = st.sidebar.radio("Menu", [
     "📘 Học",
+    "🎓 Lớp học AI (Quiz)",   # 👈 học chuẩn
+    "🎓 Lớp học AI (Chat)",   # 👈 chat realtime
     "💼 Đi làm",
     "🤖 Chấm bút toán",
-    "📚 Từ điển",
-    "🎓 Lớp học AI"
-]) # Đảm bảo có đủ dấu đóng ngoặc tròn ) ở đây
+    "📚 Từ điển"
+])
+
+
 # ================= HỌC =================
-elif menu == "🎓 Lớp học AI":
+if menu == "📘 Học":
+    st.write("Phần học cơ bản")
+
+# ================= QUIZ =================
+elif menu == "🎓 Lớp học AI (Quiz)":
 
     st.header("🎓 Lớp học chuẩn giáo dục")
 
-    # ===== INIT =====
     if "q_index" not in st.session_state:
         st.session_state.q_index = 0
 
-    if "coins" not in st.session_state:
-        st.session_state.coins = 100
-
     q = question_bank[st.session_state.q_index]
 
-    # ===== HIỂN THỊ =====
     st.subheader(f"Câu hỏi {q['id']}")
     st.write(q["question"])
 
     answer = st.radio("Chọn đáp án:", q["options"])
 
-    # ===== NỘP =====
     if st.button("Nộp bài"):
 
         correct = q["options"].index(answer) == q["correct"]
 
-        # 📊 TRACK SKILL
         update_progress(q["skill"], correct, st.session_state)
 
         if correct:
@@ -67,7 +67,7 @@ elif menu == "🎓 Lớp học AI":
 
             st.info(q["explain"])
 
-            if st.button("Câu tiếp theo"):
+            if st.button("Câu tiếp"):
                 st.session_state.q_index += 1
                 st.rerun()
 
@@ -75,33 +75,24 @@ elif menu == "🎓 Lớp học AI":
             st.error("❌ Sai -5 coins")
             st.session_state.coins -= 5
 
-            # 🤖 AI DẠY LẠI
             hint = teacher_explain(q["question"], answer)
             st.warning("🤖 Gợi ý:")
             st.write(hint)
-# ================= DICTIONARY =================
-elif menu == "📚 Từ điển":
-    st.header("📚 Từ điển kế toán") # Thêm header cho rõ ràng
-    key = st.text_input("Nhập mã tài khoản (TK)")
 
-    if key in dictionary:
-        st.success(dictionary[key])
-    elif key != "":
-        st.warning("Không tìm thấy tài khoản này trong từ điển.")
 
-# ================= LỚP HỌC AI (ĐÃ TÁCH RIÊNG) =================
-elif menu == "🎓 Lớp học AI":
+# ================= CHAT AI =================
+elif menu == "🎓 Lớp học AI (Chat)":
+
     st.header("🎓 Lớp học AI (Real-time)")
 
-    # ===== INIT STATE =====
     if "chat_history" not in st.session_state:
-     st.session_state.chat_history = [
-        {
-            "role": "assistant",
-            "content": "Hôm nay học phương trình kế toán.\n\n❓ Tài sản = ?"
-        }
-    ]
-    # ===== HIỂN THỊ CHAT =====
+        st.session_state.chat_history = [
+            {
+                "role": "assistant",
+                "content": "Hôm nay học phương trình kế toán.\n\n❓ Tài sản = ?"
+            }
+        ]
+
     for msg in st.session_state.chat_history:
         if msg["role"] == "user":
             st.markdown(f"🧑‍🎓 **Bạn:** {msg['content']}")
@@ -110,40 +101,74 @@ elif menu == "🎓 Lớp học AI":
 
     st.divider()
 
-    # ===== INPUT =====
-    # Dùng form để tránh việc bấm nút bị load lại trang quá nhiều lần
     with st.form("chat_form", clear_on_submit=True):
-        user_input = st.text_input("Nhập câu trả lời hoặc câu hỏi")
-        submit_button = st.form_submit_button("Gửi")
+        user_input = st.text_input("Nhập câu trả lời")
+        submit = st.form_submit_button("Gửi")
 
-    if submit_button and user_input.strip() != "":
-        # Lưu câu hỏi
+    if submit and user_input.strip() != "":
         st.session_state.chat_history.append({
             "role": "user",
             "content": user_input
         })
 
-        # Gọi AI (classroom_chat)
         reply = classroom_chat(
             st.session_state.chat_history,
             user_input
         )
 
-        # Lưu phản hồi
         st.session_state.chat_history.append({
             "role": "assistant",
             "content": reply
         })
 
-        # 🎮 GAME HOÁ
         if "đúng" in reply.lower():
             st.session_state.coins += 10
         else:
             st.session_state.coins -= 5
-        
+
         st.rerun()
 
-    # ===== RESET =====
-    if st.button("🔄 Reset lớp học"):
+    if st.button("🔄 Reset"):
         st.session_state.chat_history = []
         st.rerun()
+
+
+# ================= TỪ ĐIỂN =================
+elif menu == "📚 Từ điển":
+
+    st.header("📚 Từ điển")
+
+    key = st.text_input("Nhập TK")
+
+    if key in dictionary:
+        st.success(dictionary[key])
+    elif key != "":
+        st.warning("Không tìm thấy")
+
+
+# ================= ĐI LÀM =================
+elif menu == "💼 Đi làm":
+
+    task = jobs[0]["tasks"][0]
+
+    st.subheader("Công việc hôm nay")
+    st.info(boss_msg(task))
+
+    user = st.text_input("Nhập bút toán")
+
+    if st.button("Nộp task"):
+        if user.lower() in task["correct"].lower():
+            st.success("+20 coins")
+            st.session_state.coins += 20
+        else:
+            st.error("-10 coins")
+            st.session_state.coins -= 10
+
+
+# ================= AI GRADER =================
+elif menu == "🤖 Chấm bút toán":
+
+    entry = st.text_area("Nhập bút toán")
+
+    if st.button("Chấm"):
+        st.write(grade(entry))
