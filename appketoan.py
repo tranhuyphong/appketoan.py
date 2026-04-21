@@ -140,6 +140,29 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 st.write(f"🔥 Streak học: {st.session_state.streak}")
+# ================= PROGRESS SYSTEM =================
+def save_progress(lesson_id, score):
+    try:
+        supabase.table("users_progress").upsert({
+            "email": st.session_state.user,
+            "lesson_id": lesson_id,
+            "status": "done",
+            "score": score,
+            "last_learned": str(datetime.date.today())
+        }).execute()
+    except Exception as e:
+        print("Save progress error:", e)
+
+
+def load_progress():
+    try:
+        res = supabase.table("users_progress")\
+            .select("*")\
+            .eq("email", st.session_state.user)\
+            .execute()
+        return {r["lesson_id"]: r for r in res.data}
+    except:
+        return {}
 
 # ================= MENU =================
 menu = st.sidebar.radio("Menu", [
@@ -158,10 +181,18 @@ menu = st.sidebar.radio("Menu", [
 
 # ================= HỌC =================
 
-if menu == "📘 Học": 
+if menu == "📘 Học":
+
     st.header("📘 Lộ trình học")
 
+    progress_data = load_progress()
+
     for level in learning_path:
+
+        # ===== LOCK LEVEL =====
+        if st.session_state.coins < level.get("unlock_coins", 0):
+            st.warning(f"🔒 Mở khóa khi đạt {level['unlock_coins']} coins")
+            continue
 
         st.subheader(f"🔥 {level['level']}")
 
@@ -169,19 +200,27 @@ if menu == "📘 Học":
 
             st.markdown(f"### 📚 {module['name']}")
 
+            total = len(module["lessons"])
+            done = sum(1 for l in module["lessons"] if l["id"] in progress_data)
+
+            # ===== PROGRESS BAR =====
+            st.progress(done / total)
+
             for lesson in module["lessons"]:
 
-                key = f"{lesson['title']}"
+                is_done = lesson["id"] in progress_data
 
-                with st.expander(f"📖 {lesson['title']}"):
+                with st.expander(f"{'✅' if is_done else '📖'} {lesson['title']}"):
 
-                    # ===== NỘI DUNG =====
+                    # ===== CONTENT =====
                     st.write(lesson["content"])
 
                     st.divider()
 
+                    # ===== QUIZ =====
                     st.write("🧠 Bài kiểm tra")
 
+                    user_answers = []
                     correct_count = 0
 
                     for i, q in enumerate(lesson["quiz"]):
@@ -189,21 +228,51 @@ if menu == "📘 Học":
                         ans = st.radio(
                             q["question"],
                             q["options"],
-                            key=f"{key}_{i}"
+                            key=f"{lesson['id']}_{i}"
                         )
 
-                        if st.button(f"Nộp câu {i+1}", key=f"btn_{key}_{i}"):
+                        user_answers.append(ans)
 
-                            if q["options"].index(ans) == q["answer"]:
-                                st.success("✅ Đúng")
-                                correct_count += 1
-                            else:
-                                st.error("❌ Sai")
+                        if ans == q["options"][q["answer"]]:
+                            correct_count += 1
 
-                    # ===== HOÀN THÀNH =====
-                    if correct_count == len(lesson["quiz"]):
-                        st.success("🎉 Hoàn thành bài!")
-                        st.session_state.coins += 20
+                    # ===== SUBMIT =====
+                    if st.button("🚀 Nộp bài", key=lesson["id"]):
+
+                        score = int((correct_count / len(lesson["quiz"])) * 100)
+
+                        if score >= 70:
+
+                            st.success(f"🎉 Pass {score}%")
+
+                            save_progress(lesson["id"], score)
+
+                            # ===== REWARD =====
+                            if lesson["id"] not in st.session_state.learned_lessons:
+                                st.session_state.learned_lessons.append(lesson["id"])
+                                st.session_state.coins += lesson.get("xp", 20)
+                                st.session_state.daily_learn += 1
+
+                                st.success(f"💰 +{lesson.get('xp',20)} coins")
+
+                        else:
+                            st.error(f"❌ Fail {score}% (cần ≥70%)")
+
+                        save_coins()
+                        st.rerun()
+
+                    # ===== AI FEATURES =====
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        if st.button("🤖 Giải thích", key=f"ai_{lesson['id']}"):
+                            explain = teacher_explain(lesson["title"])
+                            st.info(explain)
+
+                    with col2:
+                        if st.button("🎯 Luyện thêm", key=f"extra_{lesson['id']}"):
+                            extra = teacher_explain(f"Tạo quiz về {lesson['title']}")
+                            st.warning(extra)
 
 # ================= QUIZ =================
 elif menu == "🎓 Lớp học AI (Quiz)":
