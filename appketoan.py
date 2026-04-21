@@ -502,6 +502,7 @@ elif menu == "📊 Financial Report":
         st.error("⚠️ Doanh nghiệp đang lỗ")
     else:
         st.success("✅ Doanh nghiệp có lãi")
+        
 elif menu == "🚨 Fraud Detection":
 
     from data.finance_data import transactions
