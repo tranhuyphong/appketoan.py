@@ -4,19 +4,17 @@ from openai import OpenAI
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 def teacher_explain(question, user_answer):
+
     prompt = f"""
-Bạn là giáo viên kế toán.
+Bạn là gia sư kế toán.
 
 Câu hỏi: {question}
-Học sinh trả lời: {user_answer}
+Học sinh chọn: {user_answer}
 
-Nếu sai:
+Hãy:
 - KHÔNG đưa đáp án ngay
 - Gợi ý từng bước
 - Giải thích dễ hiểu
-
-Nếu gần đúng:
-- Khuyến khích và sửa nhẹ
 """
 
     res = client.chat.completions.create(
