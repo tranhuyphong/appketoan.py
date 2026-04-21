@@ -223,7 +223,6 @@ elif menu == "🏆 Thi":
 
     exam = exams[0]
 
-    # ===== INIT =====
     if "percent" not in st.session_state:
         st.session_state.percent = None
 
@@ -244,9 +243,9 @@ elif menu == "🏆 Thi":
         st.session_state.percent = score / len(exam["questions"]) * 100
 
     # ===== HIỂN THỊ =====
-    if st.session_state.percent is not None:
+    percent = st.session_state.get("percent", None)
 
-        percent = st.session_state.percent
+    if percent is not None:
 
         st.success(f"🎯 Điểm: {round(percent,1)}%")
         st.progress(percent / 100)
