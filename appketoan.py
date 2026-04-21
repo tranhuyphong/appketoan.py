@@ -23,9 +23,6 @@ st.title("🚀 PHONG AI ACCOUNTING")
 st.metric("💰 Coins", st.session_state.coins)
 
 # ===== MENU =====
-# ===== MENU =====
-menu = st.sidebar.radio("Menu", [
-    # ===== MENU =====
 menu = st.sidebar.radio("Menu", [
     "📘 Học",
     "💼 Đi làm",
