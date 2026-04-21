@@ -3,6 +3,7 @@ import random
 import datetime
 from supabase import create_client
 from data.career_tasks import career_tasks
+from data.learning_path import learning_path
 
 # ================= SUPABASE =================
 # Sửa từ "wjwtowmdcdkpryxcqqty" thành đường dẫn đầy đủ:
@@ -26,6 +27,8 @@ def init_state():
             st.session_state[k] = v
 
 init_state()
+"learned_lessons": [],
+"daily_learn": 0,
 
 # ================= LOGIN / REGISTER =================
 if "user" not in st.session_state:
@@ -94,6 +97,11 @@ if "user" in st.session_state: # <--- THÊM DÒNG NÀY (Bọc toàn bộ đoạn
         st.session_state.last_login = today
         st.success("🎁 Daily +20 coins")
         save_coins()
+if st.session_state.daily_learn >= 3:
+    st.success("🎁 Daily học đủ 3 bài +30 coins")
+    st.session_state.coins += 30
+    st.session_state.daily_learn = 0
+    save_coins()
 # ================= IMPORT MODULE =================
 from data.question_bank import question_bank
 from engine.ai_teacher import teacher_explain
@@ -127,6 +135,7 @@ st.markdown(f"""
 💰 {coins} | 🔥 {st.session_state.streak} | 🎖 {rank}
 </div>
 """, unsafe_allow_html=True)
+st.write(f"🔥 Streak học: {st.session_state.streak}")
 
 # ================= MENU =================
 menu = st.sidebar.radio("Menu", [
@@ -144,8 +153,76 @@ menu = st.sidebar.radio("Menu", [
 ])
 
 # ================= HỌC =================
+
 if menu == "📘 Học":
-    st.write("Phần học cơ bản")
+
+    st.header("📘 Lộ trình học kế toán")
+
+    coins = st.session_state.coins
+
+    # ===== UNLOCK RULE =====
+    def unlocked(level_index):
+        return coins >= level_index * 300
+
+    # ===== PROGRESS =====
+    total = sum(len(m["lessons"]) for l in learning_path for m in l["modules"])
+    done = len(st.session_state.learned_lessons)
+
+    st.progress(done / total if total > 0 else 0)
+    st.write(f"📊 Tiến độ: {done}/{total}")
+
+    st.divider()
+
+    # ===== LOOP LEVEL =====
+    for i, lvl in enumerate(learning_path):
+
+        if unlocked(i):
+            st.success(lvl["level"])
+        else:
+            st.warning(f"{lvl['level']} (🔒 Locked)")
+
+        # ===== MODULE =====
+        for module in lvl["modules"]:
+            with st.expander(f"📚 {module['name']}"):
+
+                for lesson in module["lessons"]:
+
+                    learned = lesson in st.session_state.learned_lessons
+
+                    col1, col2 = st.columns([4,1])
+
+                    with col1:
+                        if learned:
+                            st.write(f"✅ {lesson}")
+                        else:
+                            st.write(f"📖 {lesson}")
+
+                    with col2:
+                        if unlocked(i):
+
+                            if not learned:
+                                if st.button("Học", key=f"{lesson}_{i}"):
+
+                                    # ===== SAVE PROGRESS =====
+                                    st.session_state.learned_lessons.append(lesson)
+
+                                    # ===== REWARD =====
+                                    reward = random.randint(5, 15)
+                                    st.session_state.coins += reward
+
+                                    # ===== DAILY =====
+                                    st.session_state.daily_learn += 1
+
+                                    st.success(f"🎉 +{reward} coins")
+
+                                    save_coins()
+                                    st.rerun()
+
+                            else:
+                                st.write("✔️")
+
+                        else:
+                            st.write("🔒")
 
 # ================= QUIZ =================
 elif menu == "🎓 Lớp học AI (Quiz)":
