@@ -207,21 +207,123 @@ elif menu == "🎓 Lớp học AI (Chat)":
         st.rerun()
 
 # ================= ĐI LÀM =================
+from data.career_tasks import career_tasks
+
 elif menu == "💼 Đi làm":
 
-    task = random.choice(jobs[0]["tasks"])
-    user = st.text_input("Nhập bút toán")
+    st.header("🏢 Career Mode - Real Accountant Life")
 
-    if st.button("Nộp"):
+    # ===== INIT =====
+    if "work_day" not in st.session_state:
+        st.session_state.work_day = 1
+    if "performance" not in st.session_state:
+        st.session_state.performance = 100
+    if "fail" not in st.session_state:
+        st.session_state.fail = 0
+    if "stress" not in st.session_state:
+        st.session_state.stress = 0
 
-        if user.lower() in task["correct"].lower():
-            st.success("+20")
-            st.session_state.coins += 20
+    coins = st.session_state.coins
+
+    # ===== ROLE =====
+    if coins < 200:
+        role = "Intern"
+    elif coins < 500:
+        role = "Junior"
+    elif coins < 1000:
+        role = "Senior"
+    else:
+        role = "Manager"
+
+    # ===== HEADER =====
+    st.markdown(f"""
+    <div style='padding:15px;background:#0f172a;border-radius:15px'>
+    📅 Day {st.session_state.work_day}/30  
+    👔 Role: {role}  
+    📊 KPI: {st.session_state.performance}%  
+    😵 Stress: {st.session_state.stress}  
+    💰 Coins: {coins}
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ===== TASK =====
+    task = random.choice(career_tasks[role])
+
+    st.subheader("📌 Nhiệm vụ")
+    st.write(task["desc"])
+
+    options = [task["correct"]] + random.sample(task["wrong"], len(task["wrong"]))
+    random.shuffle(options)
+
+    choice = st.radio("Bạn xử lý:", options)
+
+    # ===== EVENT =====
+    events = [
+        ("🔥 Deadline gấp", +10, -5),
+        ("😡 Sếp khó tính", +5, -3),
+        ("📄 Sai hóa đơn VAT", -10, -10),
+        ("🔍 Kiểm toán đột xuất", -15, -15),
+        ("💤 Ngày bình thường", 0, 0)
+    ]
+
+    event, perf_change, stress_change = random.choice(events)
+    st.warning(event)
+
+    # ===== SUBMIT =====
+    if st.button("🚀 Xử lý"):
+
+        if choice == task["correct"]:
+            reward = random.randint(15, 40)
+            st.success(f"✅ Đúng +{reward}")
+            st.session_state.coins += reward
+            st.session_state.performance += 3 + perf_change
+            st.session_state.stress += stress_change
+
         else:
-            st.error("-10")
-            st.session_state.coins -= 10
+            st.error("❌ Sai!")
+            st.session_state.coins -= 15
+            st.session_state.performance -= 7
+            st.session_state.stress += 10
+            st.session_state.fail += 1
 
+        # ===== STRESS SYSTEM =====
+        if st.session_state.stress > 100:
+            st.error("💀 Burnout! Nghỉ việc!")
+            st.session_state.work_day = 1
+            st.session_state.performance = 100
+            st.session_state.stress = 0
+            st.session_state.coins = 100
+            st.stop()
+
+        # ===== AUDIT =====
+        if st.session_state.fail >= 3:
+            st.error("🚨 Bị audit -20 KPI")
+            st.session_state.performance -= 20
+            st.session_state.fail = 0
+
+        # ===== PROMOTION =====
+        if st.session_state.performance > 120:
+            st.success("🚀 Thăng chức!")
+            st.session_state.coins += 200
+            st.session_state.performance = 100
+
+        st.session_state.work_day += 1
         save_coins()
+
+    # ===== KPI BAR =====
+    st.progress(st.session_state.performance / 100)
+
+    # ===== END GAME =====
+    if st.session_state.work_day > 30:
+        st.success("🏆 Hoàn thành 30 ngày đi làm")
+
+        if st.session_state.performance > 85:
+            st.success("🔥 Xuất sắc")
+            st.session_state.coins += 500
+        else:
+            st.warning("⚠️ Trung bình")
+
+        st.stop()
 
 # ================= CASE =================
 elif menu == "🧾 Case Study":
