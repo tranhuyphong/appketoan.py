@@ -25,14 +25,14 @@ st.metric("💰 Coins", st.session_state.coins)
 # ===== MENU =====
 # ===== MENU =====
 menu = st.sidebar.radio("Menu", [
+    # ===== MENU =====
+menu = st.sidebar.radio("Menu", [
     "📘 Học",
     "💼 Đi làm",
     "🤖 Chấm bút toán",
-    "📚 Từ điển",      # <--- Thêm dấu phẩy ở đây
-    "🎓 Lớp học AI",   # <--- Bây giờ mục này sẽ đứng riêng
-])
-])
-
+    "📚 Từ điển",
+    "🎓 Lớp học AI"
+]) # Đảm bảo có đủ dấu đóng ngoặc tròn ) ở đây
 # ================= HỌC =================
 if menu == "📘 Học":
     lesson = curriculum[0]["units"][0]["lessons"][0]
