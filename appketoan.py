@@ -158,8 +158,7 @@ menu = st.sidebar.radio("Menu", [
 
 # ================= HỌC =================
 
-elif menu == "📘 Học":
-
+if menu == "📘 Học": 
     st.header("📘 Lộ trình học")
 
     for level in learning_path:
