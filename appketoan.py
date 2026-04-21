@@ -158,75 +158,53 @@ menu = st.sidebar.radio("Menu", [
 
 # ================= HỌC =================
 
-if menu == "📘 Học":
+elif menu == "📘 Học":
 
-    st.header("📘 Lộ trình học kế toán")
+    st.header("📘 Lộ trình học")
 
-    coins = st.session_state.coins
+    for level in learning_path:
 
-    # ===== UNLOCK RULE =====
-    def unlocked(level_index):
-        return coins >= level_index * 300
+        st.subheader(f"🔥 {level['level']}")
 
-    # ===== PROGRESS =====
-    total = sum(len(m["lessons"]) for l in learning_path for m in l["modules"])
-    done = len(st.session_state.learned_lessons)
+        for module in level["modules"]:
 
-    st.progress(done / total if total > 0 else 0)
-    st.write(f"📊 Tiến độ: {done}/{total}")
+            st.markdown(f"### 📚 {module['name']}")
 
-    st.divider()
+            for lesson in module["lessons"]:
 
-    # ===== LOOP LEVEL =====
-    for i, lvl in enumerate(learning_path):
+                key = f"{lesson['title']}"
 
-        if unlocked(i):
-            st.success(lvl["level"])
-        else:
-            st.warning(f"{lvl['level']} (🔒 Locked)")
+                with st.expander(f"📖 {lesson['title']}"):
 
-        # ===== MODULE =====
-        for module in lvl["modules"]:
-            with st.expander(f"📚 {module['name']}"):
+                    # ===== NỘI DUNG =====
+                    st.write(lesson["content"])
 
-                for lesson in module["lessons"]:
+                    st.divider()
 
-                    learned = lesson in st.session_state.learned_lessons
+                    st.write("🧠 Bài kiểm tra")
 
-                    col1, col2 = st.columns([4,1])
+                    correct_count = 0
 
-                    with col1:
-                        if learned:
-                            st.write(f"✅ {lesson}")
-                        else:
-                            st.write(f"📖 {lesson}")
+                    for i, q in enumerate(lesson["quiz"]):
 
-                    with col2:
-                        if unlocked(i):
+                        ans = st.radio(
+                            q["question"],
+                            q["options"],
+                            key=f"{key}_{i}"
+                        )
 
-                            if not learned:
-                                if st.button("Học", key=f"{lesson}_{i}"):
+                        if st.button(f"Nộp câu {i+1}", key=f"btn_{key}_{i}"):
 
-                                    # ===== SAVE PROGRESS =====
-                                    st.session_state.learned_lessons.append(lesson)
-
-                                    # ===== REWARD =====
-                                    reward = random.randint(5, 15)
-                                    st.session_state.coins += reward
-
-                                    # ===== DAILY =====
-                                    st.session_state.daily_learn += 1
-
-                                    st.success(f"🎉 +{reward} coins")
-
-                                    save_coins()
-                                    st.rerun()
-
+                            if q["options"].index(ans) == q["answer"]:
+                                st.success("✅ Đúng")
+                                correct_count += 1
                             else:
-                                st.write("✔️")
+                                st.error("❌ Sai")
 
-                        else:
-                            st.write("🔒")
+                    # ===== HOÀN THÀNH =====
+                    if correct_count == len(lesson["quiz"]):
+                        st.success("🎉 Hoàn thành bài!")
+                        st.session_state.coins += 20
 
 # ================= QUIZ =================
 elif menu == "🎓 Lớp học AI (Quiz)":
