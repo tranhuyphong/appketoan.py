@@ -223,12 +223,16 @@ elif menu == "🏆 Thi":
 
     exam = exams[0]
 
-    if "percent" not in st.session_state:
-        percent = st.session_state.get("percent", None)
+    # ===== HIỂN THỊ =====
+percent = st.session_state.get("percent", None)
 
 if percent is not None:
 
+    st.success(f"🎯 Điểm: {round(percent,1)}%")
+    st.progress(percent / 100)
+
     if percent >= 70:
+        st.balloons()
         st.success("🎓 ĐẬU!")
     else:
         st.error("❌ RỚT!")
