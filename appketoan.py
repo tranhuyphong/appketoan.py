@@ -81,6 +81,7 @@ elif menu == "📚 Từ điển":
 
     if key in dictionary:
         st.success(dictionary[key])
+        
 elif menu == "🎓 Lớp học AI":
 
     st.header("🎓 Lớp học AI (Real-time)")
