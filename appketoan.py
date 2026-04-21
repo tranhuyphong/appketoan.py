@@ -93,7 +93,7 @@ menu = st.sidebar.radio("Menu", [
     "📊 Dashboard",
     "📊 Financial Report"
     "🤖 Chấm bút toán",
-    "📚 Từ điển"
+    "📚 Từ điển",
     "🚨 Fraud Detection"
 ])
 
