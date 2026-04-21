@@ -46,10 +46,21 @@ if "user" not in st.session_state:
                     "password": login_password
                 })
                 if res.user:
-                    # BƯỚC QUAN TRỌNG: Gán user và ép app load lại ngay
                     st.session_state.user = res.user.email
+                    
+                    # TẢI DỮ LIỆU CŨ TỪ DATABASE VỀ
+                    data = supabase.table("users").select("*").eq("email", res.user.email).execute()
+                    if data.data:
+                        user_data = data.data[0]
+                        # Đổ dữ liệu từ Database vào app
+                        st.session_state.coins = user_data.get("coins", 100)
+                        st.session_state.streak = user_data.get("streak", 0)
+                        st.session_state.learned_lessons = user_data.get("learned_lessons", [])
+                        st.session_state.last_login = user_data.get("last_login", "")
+                        st.session_state.performance = user_data.get("performance", 100)
+                    
                     st.success("Đăng nhập thành công!")
-                    st.rerun() # Lệnh này giúp bỏ qua lần bấm thứ 2
+                    st.rerun()
             except Exception as e:
                 st.error("Sai tài khoản hoặc mật khẩu!")
     with tab2:
@@ -76,18 +87,21 @@ if "user" not in st.session_state:
     # Dừng app tại đây nếu chưa logged in để không hiện các phần dưới
     st.stop()
 
-# ================= SAVE =================
-def save_coins():
+def save_progress():
     # Chỉ lưu khi đã có user đăng nhập
     if "user" in st.session_state and st.session_state.user:
         try:
             supabase.table("users").upsert({
                 "email": st.session_state.user,
-                "coins": st.session_state.coins
+                "coins": st.session_state.coins,
+                "streak": st.session_state.streak,
+                "learned_lessons": st.session_state.learned_lessons, # Lưu danh sách bài đã học
+                "daily_learn": st.session_state.daily_learn,
+                "performance": st.session_state.get("performance", 100), # Lưu KPI đi làm
+                "last_login": st.session_state.last_login
             }).execute()
         except Exception as e:
-            # Chỉ in ra cửa sổ log để mình biết, không làm sập giao diện người dùng
-            print(f"Lưu coin thất bại: {e}")
+            print(f"Lưu tiến trình thất bại: {e}")
 
 # ================= DAILY =================
 if "user" in st.session_state: 
