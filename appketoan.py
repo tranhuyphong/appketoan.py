@@ -30,7 +30,7 @@ except ImportError as e:
 
 # ================= 3. KẾT NỐI SUPABASE =================
 SUPABASE_URL = "https://wjwtowmdcdkpryxcqqty.supabase.co"
-SUPABASE_KEY = "YOUR_KEY"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3Rvd21kY2RrcHJ5eGNxcXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjY1NDMsImV4cCI6MjA5MjM0MjU0M30.jX4wAiXNezvmnwvr1hucjRxANZ5jWgzwn_9BsVCoueg"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ================= 4. RENDER MAP (UPDATED) =================
