@@ -179,20 +179,44 @@ menu = st.sidebar.radio("Menu", [
 ])
 
 # ================= 📘 LEARNING =================
+# ================= 📘 LEARNING =================
 if menu == "📘 Học":
     st.header("🗺️ Learning Map")
 
-    # 👉 Hiển thị lesson nếu đã chọn
-    if st.session_state.current_lesson:
+    # ================= HIỂN THỊ LESSON =================
+    if st.session_state.get("current_lesson"):
         lesson = st.session_state.current_lesson
 
         st.success(f"📖 {lesson['title']}")
         st.write(lesson["content"])
 
+        # ===== QUIZ DEMO (bạn có thể thay bằng question_bank)
+        if st.button("✅ Hoàn thành bài"):
+            score = random.randint(50, 100)
+
+            if score >= 70:
+                st.success(f"🎉 PASS {score}% (+20 coins)")
+                st.session_state.coins += 20
+
+                l_id = st.session_state.current_lesson_id
+                st.session_state.lesson_progress[l_id] = {
+                    "submitted": True,
+                    "score": score
+                }
+
+                save_progress(l_id, score)
+                save_coins()
+
+                st.session_state.current_lesson = None
+                st.rerun()
+            else:
+                st.error(f"❌ FAIL {score}% (cần ≥70%)")
+
         if st.button("❌ Đóng"):
             st.session_state.current_lesson = None
             st.rerun()
 
+    # ================= MAP =================
     for level in curriculum:
         level_name = level.get("level", "Level")
         required = level.get("unlock_coins", 0)
@@ -203,59 +227,103 @@ if menu == "📘 Học":
         for module in level.get("modules", []):
             st.markdown(f"### 📚 {module['name']}")
 
-            lesson_nodes = []
+            lessons = module["lessons"]
+            total_nodes = len(lessons) + 2  # + boss + exam
+
+            cols = st.columns(5)
             prev_passed = True
 
-            lessons_full = module["lessons"].copy()
+            for i in range(total_nodes):
+                col = cols[i % 5]
 
-            # 👉 thêm boss + exam
-            lessons_full.append({"title": "Boss", "type": "boss"})
-            lessons_full.append({"title": "Exam", "type": "exam"})
+                # ===== XÁC ĐỊNH TYPE =====
+                if i < len(lessons):
+                    lesson = lessons[i]
+                    l_id = f"{level_name}_{module['name']}_{lesson['title']}"
+                    ltype = "lesson"
+                elif i == len(lessons):
+                    l_id = f"{level_name}_{module['name']}_boss"
+                    ltype = "boss"
+                else:
+                    l_id = f"{level_name}_{module['name']}_exam"
+                    ltype = "exam"
 
-            for i, lesson in enumerate(lessons_full):
-                l_id = f"{level_name}_{module['name']}_{lesson['title']}"
                 prog = st.session_state.lesson_progress.get(
                     l_id, {"submitted": False, "score": 0}
                 )
 
-                if prog["submitted"]:
+                # ===== STATUS =====
+                if prog["submitted"] and prog["score"] >= 70:
                     status = "done"
                 elif prev_passed and unlocked:
                     status = "current"
                 else:
                     status = "locked"
 
-                lesson_nodes.append({
-                    "status": status,
-                    "type": lesson.get("type", "normal"),
-                    "label": i + 1
-                })
-
                 prev_passed = (status == "done")
 
-            # 👉 render map mới
-            clicked = render_map_streamlit(module["name"], lesson_nodes)
+                # ===== ICON =====
+                if ltype == "boss":
+                    icon = "👑"
+                elif ltype == "exam":
+                    icon = "🎓"
+                elif status == "done":
+                    icon = "🟢"
+                elif status == "current":
+                    icon = "🔵"
+                else:
+                    icon = "⚫"
 
-            # 👉 xử lý click
-            if clicked:
-                unit, index = clicked.split("|")
+                # ===== BUTTON =====
+                with col:
+                    if st.button(
+                        icon,
+                        key=l_id,
+                        disabled=(status == "locked"),
+                        use_container_width=True
+                    ):
+                        # ===== LESSON =====
+                        if ltype == "lesson":
+                            st.session_state.current_lesson = lesson
+                            st.session_state.current_lesson_id = l_id
 
-                if unit == module["name"]:
-                    idx = int(index)
+                        # ===== BOSS =====
+                        elif ltype == "boss":
+                            score = random.randint(50, 100)
 
-                    # lesson thường
-                    if idx < len(module["lessons"]):
-                        st.session_state.current_lesson = module["lessons"][idx]
+                            if score >= 70:
+                                st.success(f"👑 Boss PASS {score}% (+50 coins)")
+                                st.session_state.coins += 50
 
-                    # boss
-                    elif idx == len(module["lessons"]):
-                        st.success("👑 Boss Battle coming soon!")
+                                st.session_state.lesson_progress[l_id] = {
+                                    "submitted": True,
+                                    "score": score
+                                }
 
-                    # exam
-                    else:
-                        st.info("🎓 Exam coming soon!")
+                                save_progress(l_id, score)
+                                save_coins()
+                                st.rerun()
+                            else:
+                                st.error(f"💀 Boss FAIL {score}%")
 
-                    st.rerun()
+                        # ===== EXAM =====
+                        elif ltype == "exam":
+                            score = random.randint(50, 100)
+
+                            if score >= 70:
+                                st.success(f"🎓 Exam PASS {score}% (+100 coins)")
+                                st.session_state.coins += 100
+
+                                st.session_state.lesson_progress[l_id] = {
+                                    "submitted": True,
+                                    "score": score
+                                }
+
+                                save_progress(l_id, score)
+                                save_coins()
+                                st.rerun()
+                            else:
+                                st.error(f"❌ Exam FAIL {score}%")
 # ================= CÁC MENU KHÁC GIỮ NGUYÊN =================
 elif menu == "🎓 Lớp học AI (Quiz)":
     st.write("Quiz")
