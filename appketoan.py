@@ -3,62 +3,58 @@ import random
 import datetime
 import streamlit.components.v1 as components
 
-def render_duolingo_map(all_lessons):
+def render_unit_map(module_name, lessons):
 
-    html = """
+    html = f"""
     <style>
-    .map-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 30px;
+    .unit {
+        background: #0f172a;
         padding: 20px;
+        border-radius: 20px;
+        margin-bottom: 30px;
     }
 
-    .row {
-        width: 100%;
+    .unit-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .lesson-row {
         display: flex;
-    }
-
-    .row.left { 
-        justify-content: flex-start; 
-        padding-left: 20%;
-    }
-    
-    .row.right { 
-        justify-content: flex-end; 
-        padding-right: 20%;
+        gap: 15px;
+        flex-wrap: wrap;
     }
 
     .node {
-        width: 70px;
-        height: 70px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        font-size: 18px;
         color: white;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .node:hover {
+        transform: scale(1.1);
     }
 
     .done { background: #22c55e; }
     .current { background: #3b82f6; }
-    .locked { background: #64748b; opacity: 0.3; }
+    .locked { background: #475569; opacity: 0.4; }
 
-    .line {
-        width: 6px;
-        height: 40px;
-        background: #94a3b8;
-        margin: 0 auto;
-    }
     </style>
 
-    <div class="map-container">
+    <div class="unit">
+        <div class="unit-title">{module_name}</div>
+        <div class="lesson-row">
     """
 
-    for i, lesson in enumerate(all_lessons):
+    for i, lesson in enumerate(lessons):
 
         if lesson["status"] == "done":
             cls = "node done"
@@ -67,21 +63,11 @@ def render_duolingo_map(all_lessons):
         else:
             cls = "node locked"
 
-        side = "left" if i % 2 == 0 else "right"
+        html += f"<div class='{cls}'>{i+1}</div>"
 
-        html += f"<div class='row {side}'><div class='{cls}'>{i+1}</div></div>"
+    html += "</div></div>"
 
-        if i < len(all_lessons) - 1:
-            html += "<div class='line'></div>"
-
-    html += "</div>"
-
-    components.html(html, height=800, scrolling=True)
-
-from supabase import create_client
-from data.career_tasks import career_tasks
-from data.learning_path import learning_path
-
+    components.html(html, height=200)
 # ================= SUPABASE =================
 SUPABASE_URL = "https://wjwtowmdcdkpryxcqqty.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indqd3Rvd21kY2RrcHJ5eGNxcXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjY1NDMsImV4cCI6MjA5MjM0MjU0M30.jX4wAiXNezvmnwvr1hucjRxANZ5jWgzwn_9BsVCoueg"
@@ -299,7 +285,7 @@ if menu == "📘 Học":
                 lesson_nodes.append({"status": status})
                 prev_passed = state["submitted"] and state["score"] >= 70
 
-            render_duolingo_map(lesson_nodes)
+            render_unit_map(module["name"], lesson_nodes)
 
             prev_passed = True  
             for lesson in module["lessons"]:
