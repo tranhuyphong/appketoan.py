@@ -258,7 +258,7 @@ if menu == "📘 Học":
             render_duolingo_pro(module["name"], lesson_nodes)
             clicked = st.session_state.get("clicked_node")
 
-            if clicked and "|" in clicked:
+ if clicked and "|" in clicked:
     unit, index = clicked.split("|")
 
     if unit != module["name"]:
@@ -271,7 +271,6 @@ if menu == "📘 Học":
 
     st.session_state.clicked_node = None
     st.rerun()
-
 # ================= CÁC MENU KHÁC GIỮ NGUYÊN =================
 elif menu == "🎓 Lớp học AI (Quiz)":
     st.write("Quiz")
