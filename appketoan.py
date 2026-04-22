@@ -42,69 +42,43 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ================= 4. MAP FIX =================
-def render_duolingo_pro(unit_id, lessons):
-    html = """
-    <style>
-    .map { display: flex; flex-direction: column; align-items: center; gap: 35px; }
-    .row { width: 100%; display: flex; }
-    .left { justify-content: flex-start; padding-left: 20%; }
-    .right { justify-content: flex-end; padding-right: 20%; }
+def render_map_streamlit(module_name, lessons):
+    st.markdown("###")
 
-    .node {
-        width: 75px; height: 75px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: bold; color: white; cursor: pointer;
-    }
-
-    .done { background: #22c55e; }
-    .current { background: #3b82f6; }
-    .locked { background: #334155; opacity: 0.4; cursor: not-allowed; }
-    .boss { background: gold; color: black; }
-    .exam { background: purple; }
-
-    .line { width: 6px; height: 40px; background: #475569; }
-    </style>
-
-    <div class="map">
-    """
+    cols = st.columns(5)
 
     for i, lesson in enumerate(lessons):
-        cls = f"node {lesson['status']}"
+        col = cols[i % 5]
 
-        if lesson.get("type") == "boss":
-            cls += " boss"
-        elif lesson.get("type") == "exam":
-            cls += " exam"
+        status = lesson["status"]
+        label = lesson["label"]
+        ltype = lesson.get("type", "normal")
 
-        side = "left" if i % 2 == 0 else "right"
-        label = lesson.get("label", i+1)
+        # 🎨 màu + icon
+        if status == "done":
+            icon = "🟢"
+        elif status == "current":
+            icon = "🔵"
+        else:
+            icon = "⚫"
 
-        click = f"sendClick('{unit_id}|{i}')" if lesson["status"] != "locked" else ""
+        if ltype == "boss":
+            icon = "👑"
+        elif ltype == "exam":
+            icon = "🎓"
 
-        html += f"""
-        <div class="row {side}">
-            <div class="{cls}" onclick="{click}">
-                {label}
-            </div>
-        </div>
-        """
+        disabled = (status == "locked")
 
-        if i < len(lessons)-1:
-            html += "<div class='line'></div>"
+        with col:
+            if st.button(
+                f"{icon}",
+                key=f"{module_name}_{i}",
+                disabled=disabled,
+                use_container_width=True
+            ):
+                return f"{module_name}|{i}"
 
-    html += "</div>"
-
-    return components.html(f"""
-{html}
-<script>
-function sendClick(val){{
-    window.parent.postMessage({{
-        type: "streamlit:setComponentValue",
-        value: val
-    }}, "*");
-}}
-</script>
-""", height=600)
+    return None
 
 # ================= DB =================
 def load_progress():
@@ -211,8 +185,10 @@ if menu == "📘 Học":
     # 👉 Hiển thị lesson nếu đã chọn
     if st.session_state.current_lesson:
         lesson = st.session_state.current_lesson
-        st.subheader(lesson["title"])
+
+        st.success(f"📖 {lesson['title']}")
         st.write(lesson["content"])
+
         if st.button("❌ Đóng"):
             st.session_state.current_lesson = None
             st.rerun()
@@ -232,7 +208,7 @@ if menu == "📘 Học":
 
             lessons_full = module["lessons"].copy()
 
-            # add boss + exam
+            # 👉 thêm boss + exam
             lessons_full.append({"title": "Boss", "type": "boss"})
             lessons_full.append({"title": "Exam", "type": "exam"})
 
@@ -252,25 +228,34 @@ if menu == "📘 Học":
                 lesson_nodes.append({
                     "status": status,
                     "type": lesson.get("type", "normal"),
-                    "label": "👑" if lesson.get("type") == "boss"
-                             else "🎓" if lesson.get("type") == "exam"
-                             else i + 1
+                    "label": i + 1
                 })
 
                 prev_passed = (status == "done")
 
-            clicked = render_duolingo_pro(module["name"], lesson_nodes)
+            # 👉 render map mới
+            clicked = render_map_streamlit(module["name"], lesson_nodes)
 
-if isinstance(clicked, str) and "|" in clicked:
-    unit, index = clicked.split("|")
+            # 👉 xử lý click
+            if clicked:
+                unit, index = clicked.split("|")
 
-    if unit == module["name"]:
-        idx = int(index)
+                if unit == module["name"]:
+                    idx = int(index)
 
-        if idx < len(module["lessons"]):
-            st.session_state.current_lesson = module["lessons"][idx]
+                    # lesson thường
+                    if idx < len(module["lessons"]):
+                        st.session_state.current_lesson = module["lessons"][idx]
 
-        st.rerun()
+                    # boss
+                    elif idx == len(module["lessons"]):
+                        st.success("👑 Boss Battle coming soon!")
+
+                    # exam
+                    else:
+                        st.info("🎓 Exam coming soon!")
+
+                    st.rerun()
 # ================= CÁC MENU KHÁC GIỮ NGUYÊN =================
 elif menu == "🎓 Lớp học AI (Quiz)":
     st.write("Quiz")
