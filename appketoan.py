@@ -206,13 +206,14 @@ if menu == "📘 Học":
             # ===== PROGRESS BAR =====
             st.progress(done / total)
 
-            for lesson in module["lessons"]:
-            lesson_key = f"lesson_{lesson['id']}"
-
-if lesson_key not in st.session_state:
-    st.session_state[lesson_key] = {
-        "submitted": False,
-        "score": 0
+            # Cấu trúc đúng phải như thế này:
+for lesson in module["lessons"]:
+    lesson_key = f"lesson_{lesson['id']}" # <--- Phải thụt lùi vào so với chữ "for"
+    if lesson_key not in st.session_state:
+        st.session_state[lesson_key] = {
+            "submitted": False,
+            "score": 0
+        }
     }
 
 lesson_state = st.session_state[lesson_key]
