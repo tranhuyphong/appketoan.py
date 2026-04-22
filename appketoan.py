@@ -261,22 +261,18 @@ if menu == "📘 Học":
 
             clicked = render_duolingo_pro(module["name"], lesson_nodes)
 
-            if clicked and "|" in clicked:
-                unit, index = clicked.split("|")
+if isinstance(clicked, str) and "|" in clicked:
+    unit, index = clicked.split("|")
 
-                # 👉 Đúng module mới xử lý
-                if unit != module["name"]:
-                    continue
+    if unit != module["name"]:
+        continue
 
-                idx = int(index)
+    idx = int(index)
 
-                # 👉 Chỉ mở lesson thường (không phải boss/exam)
-                if idx < len(module["lessons"]):
-                    st.session_state.current_lesson = module["lessons"][idx]
+    if idx < len(module["lessons"]):
+        st.session_state.current_lesson = module["lessons"][idx]
 
-                # reset click
-                st.session_state.clicked_node = None
-                st.rerun()
+    st.rerun()
 # ================= CÁC MENU KHÁC GIỮ NGUYÊN =================
 elif menu == "🎓 Lớp học AI (Quiz)":
     st.write("Quiz")
