@@ -5,7 +5,7 @@ import pandas as pd
 import streamlit.components.v1 as components
 from supabase import create_client
 
-# ================= 1. CONFIG =================
+# ================= 1. CẤU HÌNH TRANG =================
 st.set_page_config(page_title="Phong AI Accounting", layout="wide")
 
 # ================= 2. IMPORT =================
@@ -28,7 +28,7 @@ except ImportError as e:
     curriculum = []
     question_bank = []
 
-# 👉 FIX QUAN TRỌNG: đảm bảo curriculum đúng
+# 👉 FIX dùng learning_path nếu có
 try:
     from data.learning_path import learning_path
     curriculum = learning_path
@@ -40,7 +40,7 @@ SUPABASE_URL = "https://wjwtowmdcdkpryxcqqty.supabase.co"
 SUPABASE_KEY = "YOUR_KEY"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# ================= 4. RENDER MAP (FIX CLICK) =================
+# ================= 4. MAP (FIX) =================
 def render_duolingo_pro(unit_id, lessons):
     html = """
     <style>
@@ -50,10 +50,9 @@ def render_duolingo_pro(unit_id, lessons):
     .right { justify-content: flex-end; padding-right: 20%; }
 
     .node {
-        width: 80px; height: 80px; border-radius: 50%;
+        width: 75px; height: 75px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        font-weight: bold; font-size: 22px; color: white;
-        cursor: pointer;
+        font-weight: bold; color: white; cursor: pointer;
     }
 
     .done { background: #22c55e; }
@@ -71,13 +70,13 @@ def render_duolingo_pro(unit_id, lessons):
     for i, lesson in enumerate(lessons):
         cls = f"node {lesson['status']}"
 
-        if lesson["type"] == "boss":
+        if lesson.get("type") == "boss":
             cls += " boss"
-        elif lesson["type"] == "exam":
+        elif lesson.get("type") == "exam":
             cls += " exam"
 
         side = "left" if i % 2 == 0 else "right"
-        label = lesson["label"]
+        label = lesson.get("label", i+1)
 
         click = f"sendClick('{unit_id}|{i}')" if lesson["status"] != "locked" else ""
 
@@ -89,12 +88,11 @@ def render_duolingo_pro(unit_id, lessons):
         </div>
         """
 
-        if i < len(lessons) - 1:
+        if i < len(lessons)-1:
             html += "<div class='line'></div>"
 
     html += "</div>"
 
-    # 🔥 FIX CLICK VALUE
     return components.html(f"""
     {html}
     <script>
@@ -142,40 +140,57 @@ if "coins" not in st.session_state:
         "coins": 100,
         "streak": 0,
         "last_login": "",
+        "percent": None,
         "lesson_progress": {},
         "current_lesson": None,
+        "current_lesson_id": None,
         "q_index": 0,
-        "chat_history": []
+        "chat_history": [],
+        "skills": {},
+        "learned_lessons": [],
+        "daily_learn": 0
     })
 
 # ================= LOGIN =================
 if "user" not in st.session_state:
     st.title("🚀 PHONG AI ACCOUNTING")
-    email = st.text_input("Email")
-    pw = st.text_input("Password", type="password")
+    tab1, tab2 = st.tabs(["🔐 Đăng nhập", "📝 Đăng ký"])
 
-    if st.button("Đăng nhập"):
-        try:
-            res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
-            if res.user:
-                st.session_state.user = res.user.email
-                st.rerun()
-        except:
-            st.error("Sai tài khoản!")
+    with tab1:
+        email = st.text_input("Email")
+        pw = st.text_input("Password", type="password")
+        if st.button("Đăng nhập"):
+            try:
+                res = supabase.auth.sign_in_with_password({"email": email, "password": pw})
+                if res.user:
+                    st.session_state.user = res.user.email
+                    st.rerun()
+            except:
+                st.error("Sai tài khoản hoặc mật khẩu!")
+
+    with tab2:
+        reg_email = st.text_input("Email đăng ký")
+        reg_pw = st.text_input("Password đăng ký", type="password")
+        if st.button("Thực hiện Đăng ký"):
+            try:
+                supabase.auth.sign_up({"email": reg_email, "password": reg_pw})
+                st.success("Đăng ký xong!")
+            except Exception as e:
+                st.error(f"Lỗi: {e}")
 
     st.stop()
 
 # ================= LOAD PROGRESS =================
 if "progress_loaded" not in st.session_state:
-    db = load_progress()
-    for l_id, data in db.items():
+    db_progress = load_progress()
+    for l_id, data in db_progress.items():
         st.session_state.lesson_progress[l_id] = {
             "submitted": True,
             "score": data.get("score", 0)
         }
     st.session_state.progress_loaded = True
 
-# ================= DAILY =================
+# ================= DAILY BONUS =================
 today = str(datetime.date.today())
 if st.session_state.last_login != today:
     st.session_state.coins += 20
@@ -184,40 +199,50 @@ if st.session_state.last_login != today:
 
 # ================= UI =================
 coins = st.session_state.coins
-st.sidebar.markdown(f"💰 Coins: {coins}")
+rank = "🥉 Intern" if coins < 100 else "🥈 Junior" if coins < 300 else "🥇 Senior" if coins < 600 else "👑 Manager"
 
-menu = st.sidebar.radio("Menu", ["📘 Học", "🏆 Leaderboard"])
+st.sidebar.markdown(f"### 🎖️ Rank: {rank}")
+st.sidebar.markdown(f"### 💰 Coins: {coins}")
 
-# ================= LEARNING MAP =================
+menu = st.sidebar.radio("Menu", [
+    "📘 Học",
+    "🎓 Lớp học AI (Quiz)",
+    "🎓 Lớp học AI (Chat)",
+    "💼 Đi làm",
+    "🧾 Case Study",
+    "📊 Dashboard",
+    "📊 Financial Report",
+    "🤖 Chấm bút toán",
+    "📚 Từ điển",
+    "🚨 Fraud Detection",
+    "🏆 Leaderboard"
+])
+
+# ================= 📘 LEARNING MAP (ĐÃ FIX) =================
 if menu == "📘 Học":
     st.header("🗺️ Learning Map")
 
-    if not curriculum:
-        st.error("❌ Curriculum chưa load!")
-        st.stop()
-
-    if st.session_state.current_lesson:
+    if st.session_state.get("current_lesson"):
         lesson = st.session_state.current_lesson
-        st.subheader(lesson["title"])
+        st.markdown(f"## 📖 {lesson['title']}")
         st.write(lesson["content"])
 
-        if st.button("Đóng"):
+        if st.button("❌ Đóng"):
             st.session_state.current_lesson = None
             st.rerun()
 
     for level in curriculum:
-
         level_name = level.get("level") or level.get("name") or "Level"
         required = level.get("unlock_coins", 0)
         unlocked = coins >= required
 
-        st.markdown(f"## {'🔓' if unlocked else '🔒'} {level_name} (Cần {required}💰)")
+        st.markdown(f"## {'🔓' if unlocked else '🔒'} {level_name} (Cần {required} 💰)")
 
         for module in level.get("modules", []):
             st.markdown(f"### 📚 {module['name']}")
 
             lesson_nodes = []
-            prev = True
+            prev_passed = True
 
             for i, lesson in enumerate(module["lessons"]):
                 l_id = f"{level_name}_{module['name']}_{lesson['title']}"
@@ -225,7 +250,7 @@ if menu == "📘 Học":
 
                 if prog["submitted"] and prog["score"] >= 70:
                     status = "done"
-                elif prev and unlocked:
+                elif prev_passed and unlocked:
                     status = "current"
                 else:
                     status = "locked"
@@ -233,19 +258,19 @@ if menu == "📘 Học":
                 lesson_nodes.append({
                     "status": status,
                     "type": "lesson",
-                    "label": str(i + 1)
+                    "label": str(i+1)
                 })
 
-                prev = (status == "done")
+                prev_passed = (status == "done")
 
-            # BOSS
+            # Boss
             lesson_nodes.append({
-                "status": "current" if prev else "locked",
+                "status": "current" if prev_passed else "locked",
                 "type": "boss",
                 "label": "👑"
             })
 
-            # EXAM
+            # Exam cuối level
             if module == level["modules"][-1]:
                 lesson_nodes.append({
                     "status": "locked",
@@ -255,25 +280,80 @@ if menu == "📘 Học":
 
             clicked = render_duolingo_pro(module["name"], lesson_nodes)
 
-            # 🔥 FIX CLICK
-            if clicked:
+            if clicked and isinstance(clicked, str) and "|" in clicked:
                 unit, index = clicked.split("|")
                 if unit == module["name"]:
                     idx = int(index)
                     if idx < len(module["lessons"]):
-                        sel = module["lessons"][idx]
-                        st.session_state.current_lesson = sel
+                        st.session_state.current_lesson = module["lessons"][idx]
                         st.rerun()
 
-# ================= LEADERBOARD =================
+# ================= GIỮ NGUYÊN CÁC MENU KHÁC =================
+elif menu == "🎓 Lớp học AI (Quiz)":
+    if len(question_bank) > 0:
+        q = question_bank[st.session_state.q_index % len(question_bank)]
+        st.subheader(q["question"])
+        ans = st.radio("Chọn đáp án:", q["options"])
+        if st.button("Nộp"):
+            if q["options"].index(ans) == q["correct"]:
+                st.session_state.streak += 1
+                reward = min(10 + st.session_state.streak * 2, 30)
+                st.success(f"Chính xác! +{reward} coins")
+                st.session_state.coins += reward
+            else:
+                st.session_state.streak = 0
+                st.error("Sai rồi! -5 coins")
+                st.session_state.coins -= 5
+            st.info(q["explain"])
+            save_coins()
+        if st.button("➡️ Câu tiếp"):
+            st.session_state.q_index += 1
+            st.rerun()
+
+elif menu == "🎓 Lớp học AI (Chat)":
+    st.header("💬 Chat với Giảng viên AI")
+    if not st.session_state.chat_history:
+        st.session_state.chat_history = [{"role": "assistant", "content": "Chào bạn"}]
+    for m in st.session_state.chat_history:
+        st.chat_message(m["role"]).write(m["content"])
+    u_input = st.chat_input("Nhập...")
+    if u_input:
+        st.session_state.chat_history.append({"role": "user", "content": u_input})
+        reply = classroom_chat(st.session_state.chat_history, u_input)
+        st.session_state.chat_history.append({"role": "assistant", "content": reply})
+        st.rerun()
+
+elif menu == "💼 Đi làm":
+    st.header("🏢 Career Mode")
+
+elif menu == "🧾 Case Study":
+    st.header("📄 Case Study")
+
+elif menu == "📊 Dashboard":
+    st.header("📊 Dashboard")
+
+elif menu == "📊 Financial Report":
+    st.header("📊 Report")
+
+elif menu == "🤖 Chấm bút toán":
+    st.header("🤖 Grader")
+
+elif menu == "📚 Từ điển":
+    st.header("📚 Dictionary")
+
+elif menu == "🚨 Fraud Detection":
+    st.header("🚨 Fraud Detection")
+
 elif menu == "🏆 Leaderboard":
+    st.header("🏆 Leaderboard")
     try:
         res = supabase.table("users").select("email, coins").execute()
         st.table(pd.DataFrame(res.data))
     except:
-        st.error("Lỗi load bảng xếp hạng")
+        st.error("Không tải được")
 
 # ================= LOGOUT =================
+st.sidebar.divider()
 if st.sidebar.button("🚪 Đăng xuất"):
     st.session_state.clear()
     st.rerun()
