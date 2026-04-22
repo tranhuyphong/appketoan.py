@@ -209,6 +209,7 @@ menu = st.sidebar.radio("Menu", [
 if menu == "📘 Học":
     st.header("🗺️ Learning Map")
 
+    # 👉 Hiển thị lesson nếu đã chọn
     if st.session_state.current_lesson:
         lesson = st.session_state.current_lesson
         st.subheader(lesson["title"])
@@ -238,7 +239,9 @@ if menu == "📘 Học":
 
             for i, lesson in enumerate(lessons_full):
                 l_id = f"{level_name}_{module['name']}_{lesson['title']}"
-                prog = st.session_state.lesson_progress.get(l_id, {"submitted": False, "score": 0})
+                prog = st.session_state.lesson_progress.get(
+                    l_id, {"submitted": False, "score": 0}
+                )
 
                 if prog["submitted"]:
                     status = "done"
@@ -250,27 +253,35 @@ if menu == "📘 Học":
                 lesson_nodes.append({
                     "status": status,
                     "type": lesson.get("type", "normal"),
-                    "label": "👑" if lesson.get("type") == "boss" else "🎓" if lesson.get("type") == "exam" else i+1
+                    "label": "👑" if lesson.get("type") == "boss"
+                             else "🎓" if lesson.get("type") == "exam"
+                             else i + 1
                 })
 
                 prev_passed = (status == "done")
 
+            # 👉 Render map
             render_duolingo_pro(module["name"], lesson_nodes)
+
+            # 👉 Nhận click từ JS
             clicked = st.session_state.get("clicked_node")
 
- if clicked and "|" in clicked:
-    unit, index = clicked.split("|")
+            if clicked and "|" in clicked:
+                unit, index = clicked.split("|")
 
-    if unit != module["name"]:
-        continue
+                # 👉 Đúng module mới xử lý
+                if unit != module["name"]:
+                    continue
 
-    idx = int(index)
+                idx = int(index)
 
-    if idx < len(module["lessons"]):
-        st.session_state.current_lesson = module["lessons"][idx]
+                # 👉 Chỉ mở lesson thường (không phải boss/exam)
+                if idx < len(module["lessons"]):
+                    st.session_state.current_lesson = module["lessons"][idx]
 
-    st.session_state.clicked_node = None
-    st.rerun()
+                # reset click
+                st.session_state.clicked_node = None
+                st.rerun()
 # ================= CÁC MENU KHÁC GIỮ NGUYÊN =================
 elif menu == "🎓 Lớp học AI (Quiz)":
     st.write("Quiz")
