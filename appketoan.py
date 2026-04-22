@@ -267,10 +267,9 @@ if menu == "📘 Học":
 
         st.markdown(f"## 🔥 {level['level']}")
 
-        for module in level["modules"]:
+        for module in level["modules"]:   # ✅ THẲNG HÀNG với st.markdown
 
             st.markdown(f"### 📚 {module['name']}")
-
             lesson_nodes = []
 
             for lesson in module["lessons"]:
