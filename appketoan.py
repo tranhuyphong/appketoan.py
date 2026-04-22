@@ -265,35 +265,36 @@ if menu == "📘 Học":
 
     for level in learning_path:
 
-        st.markdown(f"## 🔥 {level['level']}")  # ✅ đúng indent
+        st.markdown(f"## 🔥 {level['level']}")
 
         for module in level["modules"]:
 
             st.markdown(f"### 📚 {module['name']}")
+
             # ===== BUILD MAP =====
-lesson_nodes = []
+            lesson_nodes = []
 
-for lesson in module["lessons"]:
+            for lesson in module["lessons"]:
 
-    lesson_id = f"{level['level']}_{module['name']}_{lesson['title']}"
+                lesson_id = f"{level['level']}_{module['name']}_{lesson['title']}"
 
-    if lesson_id not in st.session_state.lesson_progress:
-        st.session_state.lesson_progress[lesson_id] = {
-            "answers": {},
-            "submitted": False,
-            "score": 0
-        }
+                if lesson_id not in st.session_state.lesson_progress:
+                    st.session_state.lesson_progress[lesson_id] = {
+                        "answers": {},
+                        "submitted": False,
+                        "score": 0
+                    }
 
-    state = st.session_state.lesson_progress[lesson_id]
+                state = st.session_state.lesson_progress[lesson_id]
 
-    if state["submitted"] and state["score"] >= 70:
-        status = "done"
-    elif not state["submitted"]:
-        status = "current"
-    else:
-        status = "locked"
+                if state["submitted"] and state["score"] >= 70:
+                    status = "done"
+                elif not state["submitted"]:
+                    status = "current"
+                else:
+                    status = "locked"
 
-    lesson_nodes.append({"status": status})
+                lesson_nodes.append({"status": status})
 
 # ===== RENDER MAP =====
 render_map(lesson_nodes)
