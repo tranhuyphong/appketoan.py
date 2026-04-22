@@ -2,6 +2,8 @@ import streamlit as st
 import random
 import datetime
 import streamlit.components.v1 as components
+# Thêm dòng này vào phần đầu file (chỗ import)
+from supabase import create_client
 
 def render_unit_map(module_name, lessons):
 
