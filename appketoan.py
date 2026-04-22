@@ -78,7 +78,18 @@ if "user" not in st.session_state:
     # Dừng app tại đây nếu chưa logged in để không hiện các phần dưới
     st.stop()
 
-# ===== LOAD PROGRESS (PHẢI ĐỂ NGOÀI, KHÔNG THỤT) =====
+# ================= PROGRESS SYSTEM =================
+def load_progress():
+    try:
+        res = supabase.table("users_progress")\
+            .select("*")\
+            .eq("email", st.session_state.user)\
+            .execute()
+        return {r["lesson_id"]: r for r in res.data}
+    except:
+        return {}
+
+# ===== LOAD PROGRESS =====
 if "progress_loaded" not in st.session_state:
 
     db_progress = load_progress()
@@ -91,7 +102,6 @@ if "progress_loaded" not in st.session_state:
         }
 
     st.session_state.progress_loaded = True
-    
 # ================= SAVE =================
 def save_coins():
     # Chỉ lưu khi đã có user đăng nhập
