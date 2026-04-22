@@ -97,12 +97,12 @@ def render_duolingo_pro(unit_id, lessons):
     return components.html(f"""
 {html}
 <script>
-function sendClick(val){
-    window.parent.postMessage({
+function sendClick(val){{
+    window.parent.postMessage({{
         type: "streamlit:setComponentValue",
         value: val
-    }, "*");
-}
+    }}, "*");
+}}
 </script>
 """, height=600)
 
