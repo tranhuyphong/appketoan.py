@@ -263,26 +263,13 @@ if menu == "📘 Học":
 
     st.header("📘 Lộ trình học")
 
-    required = level.get("unlock_coins", 0)
-unlocked = st.session_state.coins >= required
+    for level in learning_path:
 
-if unlocked:
-    st.markdown(f"## 🔥 {level['level']}")
-else:
-    st.markdown(f"""
-    <div style='opacity:0.5'>
-    <h2>🔒 {level['level']}</h2>
-    💰 Cần {required} coins
-    </div>
-    """, unsafe_allow_html=True)
-
-st.info(f"💰 Coins của bạn: {st.session_state.coins} / {required}")
-
-        st.markdown(f"## 🔥 {level['level']}")
-
-        level_unlocked = True  # bạn có thể custom sau
+        st.markdown(f"## 🔥 {level['level']}")  # ✅ đúng indent
 
         for module in level["modules"]:
+
+            st.markdown(f"### 📚 {module['name']}")
             # ===== BUILD MAP =====
 lesson_nodes = []
 
