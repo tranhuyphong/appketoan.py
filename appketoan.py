@@ -267,11 +267,10 @@ if menu == "📘 Học":
 
         st.markdown(f"## 🔥 {level['level']}")
 
-        for module in level["modules"]:
+        for module in level["modules"]:   # ✅ đúng indent
 
             st.markdown(f"### 📚 {module['name']}")
 
-            # ===== BUILD MAP =====
             lesson_nodes = []
 
             for lesson in module["lessons"]:
@@ -295,7 +294,6 @@ if menu == "📘 Học":
                     status = "locked"
 
                 lesson_nodes.append({"status": status})
-
 # ===== RENDER MAP =====
 render_map(lesson_nodes)
 
