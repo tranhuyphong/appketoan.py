@@ -106,7 +106,7 @@ def render_duolingo_pro(unit_id, lessons):
     </script>
     """,
     height=600,
-    key=unit_id   # 🔥 QUAN TRỌNG
+    key=unit_id   
 )
 
 # ================= DB =================
