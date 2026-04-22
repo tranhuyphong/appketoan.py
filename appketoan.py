@@ -263,13 +263,14 @@ if menu == "📘 Học":
 
     if unit != module["name"]:
         continue
-                    idx = int(index)
 
-                    if idx < len(module["lessons"]):
-                        st.session_state.current_lesson = module["lessons"][idx]
+    idx = int(index)
 
-                    st.session_state.clicked_node = None
-                    st.rerun()
+    if idx < len(module["lessons"]):
+        st.session_state.current_lesson = module["lessons"][idx]
+
+    st.session_state.clicked_node = None
+    st.rerun()
 
 # ================= CÁC MENU KHÁC GIỮ NGUYÊN =================
 elif menu == "🎓 Lớp học AI (Quiz)":
