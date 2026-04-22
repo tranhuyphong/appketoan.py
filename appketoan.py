@@ -100,7 +100,8 @@ def render_duolingo_pro(unit_id, lessons):
 function sendClick(val){{
     window.parent.postMessage({{
         type: "streamlit:setComponentValue",
-        value: val
+key: "clicked_node",
+value: val
     }}, "*");
 }}
 </script>
@@ -254,12 +255,14 @@ if menu == "📘 Học":
 
                 prev_passed = (status == "done")
 
-            clicked = render_duolingo_pro(module["name"], lesson_nodes)
+            render_duolingo_pro(module["name"], lesson_nodes)
+            clicked = st.session_state.get("clicked_node")
 
             if clicked and "|" in clicked:
-                unit, index = clicked.split("|")
+    unit, index = clicked.split("|")
 
-                if unit == module["name"]:
+    if unit != module["name"]:
+        continue
                     idx = int(index)
 
                     if idx < len(module["lessons"]):
