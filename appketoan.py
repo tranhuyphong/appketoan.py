@@ -502,24 +502,23 @@ elif menu == "🎓 Lớp học AI (Chat)":
     st.write("Chat")
 
 elif menu == "💼 Đi làm":
-# 💰 trả lương mỗi ngày (giả lập)
+
+    today = str(datetime.date.today())
+
+    # 💰 trả lương mỗi ngày
     if "last_salary_day" not in st.session_state:
         st.session_state.last_salary_day = today
-    
+
     if st.session_state.last_salary_day != today:
         st.session_state.bank += st.session_state.salary
         st.success(f"💰 Nhận lương: +{st.session_state.salary}")
-    
         st.session_state.last_salary_day = today
-        st.header("💼 Đi làm kế toán")
-    
-        today = str(datetime.date.today())
     
         # reset mỗi ngày
         if st.session_state.last_job_date != today:
-        st.session_state.job_done_today = 0
-        st.session_state.last_job_date = today
-        st.session_state.daily_tasks = None
+            st.session_state.job_done_today = 0
+            st.session_state.last_job_date = today
+            st.session_state.daily_tasks = None
     # KPI
     accuracy = 0
     if st.session_state.total_job > 0:
@@ -544,8 +543,11 @@ elif menu == "💼 Đi làm":
     if t["level"] <= st.session_state.level
     and t["level"] >= st.session_state.level - 2
 ]
-        min(3, len(job_tasks))
-    )
+
+st.session_state.daily_tasks = random.sample(
+    available_tasks,
+    min(3, len(available_tasks))
+)
 
     # nhận job
     if not st.session_state.job_mode:
@@ -590,21 +592,21 @@ elif menu == "💼 Đi làm":
                 st.session_state.coins += task["penalty"]
 
             update_level()
-            def update_role():
-                lvl = st.session_state.level
-            
-                if lvl >= 10:
-                    st.session_state.role = "Manager"
-                    st.session_state.salary = 500
-                elif lvl >= 7:
-                    st.session_state.role = "Senior"
-                    st.session_state.salary = 300
-                elif lvl >= 4:
-                    st.session_state.role = "Staff"
-                    st.session_state.salary = 200
-                else:
-                    st.session_state.role = "Intern"
-                    st.session_state.salary = 100
+        def update_role():
+            lvl = st.session_state.level
+        
+            if lvl >= 10:
+                st.session_state.role = "Manager"
+                st.session_state.salary = 500
+            elif lvl >= 7:
+                st.session_state.role = "Senior"
+                st.session_state.salary = 300
+            elif lvl >= 4:
+                st.session_state.role = "Staff"
+                st.session_state.salary = 200
+            else:
+                st.session_state.role = "Intern"
+                st.session_state.salary = 100
 
     st.session_state.job_mode = False
     st.rerun()
