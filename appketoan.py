@@ -185,32 +185,33 @@ if menu == "📘 Học":
 
     # ================= HIỂN THỊ LESSON (Đã thụt lề vào trong menu Học) =================
     if st.session_state.get("current_lesson"):
-        lesson = st.session_state.current_lesson
 
-        # init timer
-        # FIX crash khi lesson_start = None
-if not st.session_state.get("lesson_start"):
-    st.session_state.lesson_start = time.time()
+    lesson = st.session_state.current_lesson
 
-elapsed = time.time() - st.session_state.lesson_start
+    # init timer
+    if not st.session_state.get("lesson_start"):
+        st.session_state.lesson_start = time.time()
 
-st.success(f"📖 {lesson['title']}")
-        # ===== PHASE 1: XEM NỘI DUNG =====
-        if elapsed < 60 and not st.session_state.get("start_quiz"):
-            st.write(lesson["content"])
-            st.info(f"⏳ Đọc bài: {int(60 - elapsed)}s")
+    elapsed = time.time() - st.session_state.lesson_start
 
-            if st.button("👉 Làm quiz luôn"):
-                st.session_state.start_quiz = True
-                st.rerun()
+    st.success(f"📖 {lesson['title']}")
 
-            # auto chuyển sau 60s
-            time.sleep(1)
+    # ===== PHASE 1 =====
+    if elapsed < 60 and not st.session_state.get("start_quiz"):
+
+        st.write(lesson["content"])
+        st.info(f"⏳ {int(60 - elapsed)}s")
+
+        if st.button("👉 Làm quiz luôn"):
+            st.session_state.start_quiz = True
             st.rerun()
 
-        # ===== PHASE 2: QUIZ =====
-        else:
-            st.warning("🧠 Quiz kiểm tra kiến thức")
+        time.sleep(1)
+        st.rerun()
+
+    # ===== PHASE 2 =====
+    else:
+        st.warning("🧠 Quiz")
 
             # init state
             if "quiz_index" not in st.session_state:
