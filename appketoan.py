@@ -279,10 +279,7 @@ menu_options = [
 ]
 
 # 🔒 unlock khi level >= 3
-if st.session_state.level >= 3:
-    menu_options.append("💼 Đi làm")
-else:
-    menu_options.append("🔒 Đi làm (Level 3)")
+menu_options.append("💼 Đi làm")
 
 menu_options += [
     "🧾 Case Study",
