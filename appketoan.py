@@ -342,7 +342,7 @@ if menu == "📘 Học":
                     st.session_state.boss_i = 0
                     st.session_state.boss_score = 0
 
-            if st.session_state.get("boss_mode") and st.session_state.get("boss_q"):
+            if st.session_state.get("boss_mode") and st.session_state.get("boss_q") and st.session_state.get("boss_i") is not None:
                 qs = st.session_state.boss_q
                 i = st.session_state.boss_i
 
@@ -353,7 +353,7 @@ if menu == "📘 Học":
                     ans = st.radio(
                         "Chọn",
                         q["options"],
-                        key=f"boss_{st.session_state.current_lesson_id}_{i}"
+                        key=f"boss_{st.session_state.current_lesson_id}_{i}_{st.session_state.boss_turn}"
                     )
 
                     if st.button("👉 Trả lời Boss"):
