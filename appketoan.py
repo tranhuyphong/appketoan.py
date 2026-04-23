@@ -518,9 +518,11 @@ elif menu == "🎓 Lớp học AI (Chat)":
 
 elif menu == "💼 Đi làm":
 
+    st.header("💼 Đi làm kế toán")
+
     today = str(datetime.date.today())
 
-    # 💰 trả lương mỗi ngày
+    # ===== 💰 LƯƠNG =====
     if "last_salary_day" not in st.session_state:
         st.session_state.last_salary_day = today
 
@@ -528,28 +530,19 @@ elif menu == "💼 Đi làm":
         st.session_state.bank += st.session_state.salary
         st.success(f"💰 Nhận lương: +{st.session_state.salary}")
         st.session_state.last_salary_day = today
-# 😈 SA THẢI
-if st.session_state.total_job >= 5 and accuracy < 50:
-    st.error("😈 Bạn bị sa thải do KPI quá thấp!")
 
-    st.session_state.role = "Intern"
-    st.session_state.salary = 50
-    st.session_state.bank = 0
-
-    st.session_state.total_job = 0
-    st.session_state.correct_job = 0
-
-    st.stop()
-    
-    # reset mỗi ngày
+    # ===== RESET NGÀY =====
     if st.session_state.last_job_date != today:
         st.session_state.job_done_today = 0
         st.session_state.last_job_date = today
         st.session_state.daily_tasks = None
-    # KPI
+
+    # ===== KPI =====
     accuracy = 0
     if st.session_state.total_job > 0:
-        accuracy = int(st.session_state.correct_job / st.session_state.total_job * 100)
+        accuracy = int(
+            st.session_state.correct_job / st.session_state.total_job * 100
+        )
 
     st.info(f"""
 📊 KPI:
@@ -557,33 +550,55 @@ if st.session_state.total_job >= 5 and accuracy < 50:
 - Jobs hôm nay: {st.session_state.job_done_today}/3
 """)
 
-    # giới hạn job
+    # ===== 😈 SA THẢI =====
+    if st.session_state.total_job >= 5 and accuracy < 50:
+        st.error("😈 Bạn bị sa thải do KPI quá thấp!")
+
+        st.session_state.role = "Intern"
+        st.session_state.salary = 50
+        st.session_state.bank = 0
+
+        st.session_state.total_job = 0
+        st.session_state.correct_job = 0
+
+        st.stop()
+
+    # ===== GIỚI HẠN JOB =====
     if st.session_state.job_done_today >= 3:
         st.warning("📅 Hết job hôm nay rồi!")
         st.stop()
 
-    # lấy task theo level
-if "daily_tasks" not in st.session_state:
+    # ===== TẠO TASK THEO NGÀY =====
+    if "daily_tasks" not in st.session_state or st.session_state.daily_tasks is None:
 
-    available_tasks = [
-        t for t in job_tasks
-        if t["level"] <= st.session_state.level
-        and t["level"] >= st.session_state.level - 2
-    ]
+        available_tasks = [
+            t for t in job_tasks
+            if t["level"] <= st.session_state.level
+            and t["level"] >= st.session_state.level - 2
+        ]
 
-    # nhận job
+        st.session_state.daily_tasks = random.sample(
+            available_tasks,
+            min(3, len(available_tasks))
+        )
+
+    # ===== NHẬN JOB =====
     if not st.session_state.job_mode:
         if st.button("📋 Nhận việc"):
-            st.session_state.job_task = task = st.session_state.daily_tasks[st.session_state.job_done_today]
+            st.session_state.job_task = st.session_state.daily_tasks[
+                st.session_state.job_done_today
+            ]
             st.session_state.job_mode = True
             st.session_state.job_timer = None
             st.rerun()
 
-    # làm job
+    # ===== LÀM JOB =====
     if st.session_state.job_mode and st.session_state.job_task:
+
         task = st.session_state.job_task
 
         st.subheader(f"{task['title']} ({task['department']})")
+
         remaining = realtime_timer(task["time"], "job_timer")
 
         if remaining == 0:
@@ -592,11 +607,10 @@ if "daily_tasks" not in st.session_state:
             st.session_state.job_mode = False
             st.rerun()
 
-        if task["type"] == "case":
+        if task.get("type") == "case":
             st.warning("📂 CASE THỰC TẾ")
-            st.write(task["question"])
-        else:
-            st.write(task["question"])
+
+        st.write(task["question"])
 
         ans = st.radio("Chọn", task["options"], key="job")
 
@@ -615,6 +629,7 @@ if "daily_tasks" not in st.session_state:
 
             update_level()
             update_role()
+
             st.session_state.job_mode = False
             st.rerun()
 elif menu == "🧾 Case Study":
