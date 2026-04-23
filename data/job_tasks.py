@@ -3,8 +3,10 @@ job_tasks = [
 # ================= INTERN =================
 {
     "level": 1,
+    "department": "AP",
+    "type": "mcq",
     "title": "Nhập hóa đơn mua hàng",
-    "question": "Mua hàng 10tr chưa VAT, VAT 10%. Định khoản?",
+    "question": "Mua hàng 10tr chưa VAT, VAT 10%. Bút toán đúng?",
     "options": [
         "Nợ 156:10tr, Nợ 133:1tr, Có 331:11tr",
         "Nợ 156:11tr, Có 331:11tr",
@@ -15,61 +17,55 @@ job_tasks = [
     "penalty": -10,
     "time": 20
 },
+
 {
     "level": 1,
-    "title": "Chi tiền mặt",
-    "question": "Chi tiền điện 2tr bằng tiền mặt. Định khoản?",
+    "department": "AR",
+    "type": "mcq",
+    "title": "Ghi nhận doanh thu",
+    "question": "Bán hàng thu tiền mặt 5tr, bút toán?",
     "options": [
-        "Nợ 642, Có 111",
-        "Nợ 111, Có 642",
-        "Nợ 156, Có 111"
+        "Nợ 111, Có 511",
+        "Nợ 131, Có 511",
+        "Nợ 111, Có 131"
     ],
     "correct": 0,
     "salary": 20,
     "penalty": -10,
-    "time": 15
+    "time": 20
 },
 
 # ================= STAFF =================
 {
     "level": 4,
-    "title": "Tính lương nhân viên",
-    "question": "Lương 20tr, BH 10.5%. Nhận bao nhiêu?",
+    "department": "AP",
+    "type": "mcq",
+    "title": "Thanh toán công nợ",
+    "question": "Trả NCC 20tr bằng chuyển khoản?",
     "options": [
-        "17.9tr",
-        "18tr",
-        "19tr"
+        "Nợ 331 / Có 112",
+        "Nợ 112 / Có 331",
+        "Nợ 331 / Có 111"
     ],
     "correct": 0,
     "salary": 40,
     "penalty": -20,
     "time": 25
 },
+
 {
     "level": 4,
-    "title": "Xuất hóa đơn bán hàng",
-    "question": "Bán hàng 50tr + VAT 10%. Doanh thu ghi nhận?",
+    "department": "TAX",
+    "type": "mcq",
+    "title": "Thuế GTGT",
+    "question": "Thuế GTGT đầu vào được khấu trừ ghi vào đâu?",
     "options": [
-        "50tr",
-        "55tr",
-        "45tr"
+        "133",
+        "3331",
+        "511"
     ],
     "correct": 0,
     "salary": 40,
-    "penalty": -20,
-    "time": 25
-},
-{
-    "level": 4,
-    "title": "Tính giá vốn",
-    "question": "Nhập 100 sp giá 10k, bán 50 sp. Giá vốn?",
-    "options": [
-        "500k",
-        "1tr",
-        "250k"
-    ],
-    "correct": 0,
-    "salary": 45,
     "penalty": -20,
     "time": 25
 },
@@ -77,89 +73,88 @@ job_tasks = [
 # ================= SENIOR =================
 {
     "level": 7,
-    "title": "Phân bổ chi phí trả trước",
-    "question": "Chi phí trả trước 12tr/12 tháng. Tháng này?",
+    "department": "GL",
+    "type": "case",
+    "title": "Kiểm tra sai lệch sổ cái",
+    "question": """
+Sổ cái lệch 50 triệu.
+Phát hiện do ghi thiếu chi phí.
+
+Hỏi: xử lý thế nào?
+""",
     "options": [
-        "1tr",
-        "12tr",
-        "6tr"
+        "Bỏ qua",
+        "Ghi bổ sung chi phí",
+        "Xóa dữ liệu"
     ],
-    "correct": 0,
-    "salary": 70,
-    "penalty": -30,
-    "time": 30
-},
-{
-    "level": 7,
-    "title": "Khấu hao TSCĐ",
-    "question": "TSCĐ 120tr, 10 năm. Mỗi tháng khấu hao?",
-    "options": [
-        "1tr",
-        "10tr",
-        "12tr"
-    ],
-    "correct": 0,
-    "salary": 70,
-    "penalty": -30,
-    "time": 30
-},
-{
-    "level": 7,
-    "title": "Tính thuế TNDN",
-    "question": "LN trước thuế 100tr, thuế suất 20%. Thuế?",
-    "options": [
-        "20tr",
-        "10tr",
-        "30tr"
-    ],
-    "correct": 0,
+    "correct": 1,
     "salary": 80,
-    "penalty": -35,
-    "time": 35
+    "penalty": -40,
+    "time": 40
+},
+
+{
+    "level": 7,
+    "department": "AR",
+    "type": "case",
+    "title": "Khách hàng không trả tiền",
+    "question": """
+Khách nợ 100tr quá hạn 6 tháng.
+
+Bạn xử lý?
+""",
+    "options": [
+        "Bỏ qua",
+        "Trích lập dự phòng",
+        "Xóa luôn"
+    ],
+    "correct": 1,
+    "salary": 80,
+    "penalty": -40,
+    "time": 40
 },
 
 # ================= MANAGER =================
 {
     "level": 10,
-    "title": "Phân tích ROA",
-    "question": "ROA giảm → nguyên nhân hợp lý nhất?",
+    "department": "TAX",
+    "type": "case",
+    "title": "Thanh tra thuế",
+    "question": """
+Cơ quan thuế kiểm tra, phát hiện thiếu doanh thu 500tr.
+
+Bạn xử lý?
+""",
     "options": [
-        "Lợi nhuận giảm",
-        "Tài sản tăng mạnh",
-        "Cả 2"
+        "Chối",
+        "Điều chỉnh + nộp phạt",
+        "Xóa dữ liệu"
     ],
-    "correct": 2,
-    "salary": 100,
-    "penalty": -50,
-    "time": 40
+    "correct": 1,
+    "salary": 150,
+    "penalty": -80,
+    "time": 60
 },
+
 {
     "level": 10,
-    "title": "Kiểm tra gian lận",
-    "question": "Dấu hiệu gian lận thường gặp?",
+    "department": "GL",
+    "type": "case",
+    "title": "Báo cáo tài chính sai",
+    "question": """
+Lợi nhuận bị âm do ghi sai chi phí.
+
+Bạn làm gì?
+""",
     "options": [
-        "Doanh thu tăng bất thường",
-        "Chi phí ổn định",
-        "Lợi nhuận đều"
+        "Giữ nguyên",
+        "Điều chỉnh lại bút toán",
+        "Ẩn báo cáo"
     ],
-    "correct": 0,
-    "salary": 110,
-    "penalty": -50,
-    "time": 40
-},
-{
-    "level": 10,
-    "title": "Phân tích dòng tiền",
-    "question": "Cash flow âm nhưng LN dương → vì?",
-    "options": [
-        "Công nợ tăng",
-        "Doanh thu cao",
-        "Chi phí thấp"
-    ],
-    "correct": 0,
-    "salary": 120,
-    "penalty": -60,
-    "time": 45
+    "correct": 1,
+    "salary": 150,
+    "penalty": -80,
+    "time": 60
 },
 
 ]
