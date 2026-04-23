@@ -220,7 +220,7 @@ if menu == "📘 Học":
             questions = lesson.get("quiz", [])
             if not questions:
                 st.info("Bài này chưa có quiz")
-                return
+                st.stop()
 
             i = st.session_state.quiz_index
 
