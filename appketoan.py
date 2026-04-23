@@ -193,8 +193,8 @@ if not st.session_state.get("lesson_start"):
     st.session_state.lesson_start = time.time()
 
 elapsed = time.time() - st.session_state.lesson_start
-        st.success(f"📖 {lesson['title']}")
 
+st.success(f"📖 {lesson['title']}")
         # ===== PHASE 1: XEM NỘI DUNG =====
         if elapsed < 60 and not st.session_state.get("start_quiz"):
             st.write(lesson["content"])
