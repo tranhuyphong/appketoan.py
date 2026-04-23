@@ -503,23 +503,23 @@ elif menu == "🎓 Lớp học AI (Chat)":
 
 elif menu == "💼 Đi làm":
 # 💰 trả lương mỗi ngày (giả lập)
-if "last_salary_day" not in st.session_state:
-    st.session_state.last_salary_day = today
-
-if st.session_state.last_salary_day != today:
-    st.session_state.bank += st.session_state.salary
-    st.success(f"💰 Nhận lương: +{st.session_state.salary}")
-
-    st.session_state.last_salary_day = today
-    st.header("💼 Đi làm kế toán")
-
-    today = str(datetime.date.today())
-
-    # reset mỗi ngày
-    if st.session_state.last_job_date != today:
-    st.session_state.job_done_today = 0
-    st.session_state.last_job_date = today
-    st.session_state.daily_tasks = None
+    if "last_salary_day" not in st.session_state:
+        st.session_state.last_salary_day = today
+    
+    if st.session_state.last_salary_day != today:
+        st.session_state.bank += st.session_state.salary
+        st.success(f"💰 Nhận lương: +{st.session_state.salary}")
+    
+        st.session_state.last_salary_day = today
+        st.header("💼 Đi làm kế toán")
+    
+        today = str(datetime.date.today())
+    
+        # reset mỗi ngày
+        if st.session_state.last_job_date != today:
+        st.session_state.job_done_today = 0
+        st.session_state.last_job_date = today
+        st.session_state.daily_tasks = None
     # KPI
     accuracy = 0
     if st.session_state.total_job > 0:
