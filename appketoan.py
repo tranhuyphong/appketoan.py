@@ -338,6 +338,7 @@ if menu == "📘 Học":
                     st.error("❌ Không đủ câu hỏi")
                 else:
                     st.session_state.boss_mode = True
+                    st.session_state.current_lesson = None
                     st.session_state.boss_q = random.sample(question_bank, 5)
                     st.session_state.boss_i = 0
                     st.session_state.boss_score = 0
