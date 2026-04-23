@@ -539,7 +539,11 @@ if st.session_state.last_salary_day != today:
     # lấy task theo level
     if "daily_tasks" not in st.session_state:
     st.session_state.daily_tasks = random.sample(
-        [t for t in job_tasks if t["level"] <= st.session_state.level],
+        available_tasks = [
+    t for t in job_tasks
+    if t["level"] <= st.session_state.level
+    and t["level"] >= st.session_state.level - 2
+]
         min(3, len(job_tasks))
     )
 
@@ -555,7 +559,7 @@ if st.session_state.last_salary_day != today:
     if st.session_state.job_mode and st.session_state.job_task:
         task = st.session_state.job_task
 
-        st.subheader(task["title"])
+        st.subheader(f"{task['title']} ({task['department']})")
         remaining = realtime_timer(task["time"], "job_timer")
 
         if remaining == 0:
@@ -564,7 +568,11 @@ if st.session_state.last_salary_day != today:
             st.session_state.job_mode = False
             st.rerun()
 
-        st.write(task["question"])
+        if task["type"] == "case":
+            st.warning("📂 CASE THỰC TẾ")
+            st.write(task["question"])
+        else:
+            st.write(task["question"])
 
         ans = st.radio("Chọn", task["options"], key="job")
 
