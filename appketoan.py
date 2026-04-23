@@ -344,60 +344,60 @@ if menu == "📘 Học":
                     st.session_state.boss_score = 0
 
             # ===== EXAM =====
-exam_id = f"{level_name}_{module['name']}_exam"
-
-if st.button("🎓 Exam", key=exam_id, disabled=not unlocked):
-    st.session_state.exam_mode = True
-    st.session_state.exam_q = random.sample(
-        question_bank,
-        min(10, len(question_bank))
-    )
-    st.session_state.exam_i = 0
-    st.session_state.exam_score = 0
-    st.session_state.exam_timer = None
-
-# ✅ FIX Ở ĐÂY
-if st.session_state.get("exam_mode") and st.session_state.get("exam_q"):
-
-    remaining = realtime_timer(60, "exam_timer")
-
-    qs = st.session_state.exam_q
-    i = st.session_state.exam_i
-
-    if remaining == 0:
-        st.error("⏰ Hết giờ!")
-        i = len(qs)
-
-    if i < len(qs):
-        q = qs[i]
-
-        st.write(f"🎓 {q['question']}")
-        ans = st.radio(
-            "Chọn",
-            q["options"],
-            key=f"exam_{i}"
-        )
-
-        if st.button("👉 Trả lời"):
-            if q["options"].index(ans) == q["correct"]:
-                st.session_state.exam_score += 1
-
-            st.session_state.exam_i += 1
-            st.rerun()
-
-    else:
-        percent = int(st.session_state.exam_score / len(qs) * 100)
-
-        if percent >= 70:
-            st.success(f"PASS {percent}% (+100 coins)")
-            st.session_state.coins += 100
-            st.session_state.lesson_progress[exam_id] = {"score": percent}
-        else:
-            st.error(f"FAIL {percent}%")
-
-        if st.button("🔁 Thi lại"):
-            st.session_state.exam_mode = False
-            st.rerun()
+            exam_id = f"{level_name}_{module['name']}_exam"
+            
+            if st.button("🎓 Exam", key=exam_id, disabled=not unlocked):
+                st.session_state.exam_mode = True
+                st.session_state.exam_q = random.sample(
+                    question_bank,
+                    min(10, len(question_bank))
+                )
+                st.session_state.exam_i = 0
+                st.session_state.exam_score = 0
+                st.session_state.exam_timer = None
+            
+            # ✅ FIX Ở ĐÂY
+            if st.session_state.get("exam_mode") and st.session_state.get("exam_q"):
+            
+                remaining = realtime_timer(60, "exam_timer")
+            
+                qs = st.session_state.exam_q
+                i = st.session_state.exam_i
+            
+                if remaining == 0:
+                    st.error("⏰ Hết giờ!")
+                    i = len(qs)
+            
+                if i < len(qs):
+                    q = qs[i]
+            
+                    st.write(f"🎓 {q['question']}")
+                    ans = st.radio(
+                        "Chọn",
+                        q["options"],
+                        key=f"exam_{i}"
+                    )
+            
+                    if st.button("👉 Trả lời"):
+                        if q["options"].index(ans) == q["correct"]:
+                            st.session_state.exam_score += 1
+            
+                        st.session_state.exam_i += 1
+                        st.rerun()
+            
+                else:
+                    percent = int(st.session_state.exam_score / len(qs) * 100)
+            
+                    if percent >= 70:
+                        st.success(f"PASS {percent}% (+100 coins)")
+                        st.session_state.coins += 100
+                        st.session_state.lesson_progress[exam_id] = {"score": percent}
+                    else:
+                        st.error(f"FAIL {percent}%")
+            
+                    if st.button("🔁 Thi lại"):
+                        st.session_state.exam_mode = False
+                        st.rerun()
 # ================= BOSS PLAY =================
 if st.session_state.get("boss_mode") and st.session_state.get("boss_q"):
 
