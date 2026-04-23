@@ -154,6 +154,9 @@ if "coins" not in st.session_state:
         "clicked_node": None,
         "q_index": 0,
         "chat_history": []
+    })
+
+# ===== Boss state =====
 if "boss_mode" not in st.session_state:
     st.session_state.boss_mode = False
 
@@ -165,7 +168,6 @@ if "boss_turn" not in st.session_state:
 
 if "boss_score" not in st.session_state:
     st.session_state.boss_score = 0
-    })
 
 # ================= LOGIN =================
 if "user" not in st.session_state:
