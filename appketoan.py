@@ -23,6 +23,7 @@ try:
     from engine.financial_report import generate_report
     from engine.fraud_detection import detect_fraud
     from data.finance_data import transactions
+    from data.job_tasks import job_tasks
 except ImportError as e:
     st.error(f"⚠️ Thiếu file hệ thống: {e}")
     curriculum = []
@@ -163,6 +164,30 @@ if "xp" not in st.session_state:
 
 if "level" not in st.session_state:
     st.session_state.level = 1
+# ===== JOB SYSTEM =====
+if "job_mode" not in st.session_state:
+    st.session_state.job_mode = False
+
+if "job_task" not in st.session_state:
+    st.session_state.job_task = None
+
+if "job_done_today" not in st.session_state:
+    st.session_state.job_done_today = 0
+
+if "last_job_date" not in st.session_state:
+    st.session_state.last_job_date = str(datetime.date.today())
+
+if "correct_job" not in st.session_state:
+    st.session_state.correct_job = 0
+
+if "total_job" not in st.session_state:
+    st.session_state.total_job = 0
+
+if "salary" not in st.session_state:
+    st.session_state.salary = 100
+
+if "role" not in st.session_state:
+    st.session_state.role = "Intern"
 
 # ===== Boss state =====
 if "boss_mode" not in st.session_state:
@@ -220,6 +245,7 @@ coins = st.session_state.coins
 st.sidebar.markdown(f"💰 Coins: {st.session_state.coins}")
 st.sidebar.markdown(f"⭐ XP: {st.session_state.xp}")
 st.sidebar.markdown(f"🏆 Level: {st.session_state.level}")
+st.sidebar.markdown(f"🧑‍💼 Role: {st.session_state.role}")
 
 menu_options = [
     "📘 Học",
@@ -303,6 +329,21 @@ if menu == "📘 Học":
                     st.session_state.coins += 20
                     st.session_state.xp += 20
                     update_level()
+                    def update_role():
+                        lvl = st.session_state.level
+                    
+                        if lvl >= 10:
+                            st.session_state.role = "Manager"
+                            st.session_state.salary = 500
+                        elif lvl >= 7:
+                            st.session_state.role = "Senior"
+                            st.session_state.salary = 300
+                        elif lvl >= 4:
+                            st.session_state.role = "Staff"
+                            st.session_state.salary = 200
+                        else:
+                            st.session_state.role = "Intern"
+                            st.session_state.salary = 100
                     st.session_state.lesson_progress[l_id] = {"score": score}
                 else:
                     st.error(f"❌ FAIL {score}%")
@@ -472,11 +513,77 @@ elif menu == "🎓 Lớp học AI (Chat)":
     st.write("Chat")
 
 elif menu == "💼 Đi làm":
-    st.success("💼 Chào mừng bạn đến công việc đầu tiên!")
+    st.header("💼 Đi làm kế toán")
 
-elif menu == "🔒 Đi làm (Level 3)":
-    st.warning("🔒 Bạn cần đạt Level 3 để mở khóa tính năng này!")
+    today = str(datetime.date.today())
 
+    # reset mỗi ngày
+    if st.session_state.last_job_date != today:
+        st.session_state.job_done_today = 0
+        st.session_state.last_job_date = today
+
+    # KPI
+    accuracy = 0
+    if st.session_state.total_job > 0:
+        accuracy = int(st.session_state.correct_job / st.session_state.total_job * 100)
+
+    st.info(f"""
+📊 KPI:
+- Accuracy: {accuracy}%
+- Jobs hôm nay: {st.session_state.job_done_today}/3
+""")
+
+    # giới hạn job
+    if st.session_state.job_done_today >= 3:
+        st.warning("📅 Hết job hôm nay rồi!")
+        st.stop()
+
+    # lấy task theo level
+    available_tasks = [t for t in job_tasks if t["level"] <= st.session_state.level]
+
+    # nhận job
+    if not st.session_state.job_mode:
+        if st.button("📋 Nhận việc"):
+            st.session_state.job_task = random.choice(available_tasks)
+            st.session_state.job_mode = True
+            st.session_state.job_timer = None
+            st.rerun()
+
+    # làm job
+    if st.session_state.job_mode and st.session_state.job_task:
+        task = st.session_state.job_task
+
+        st.subheader(task["title"])
+        remaining = realtime_timer(task["time"], "job_timer")
+
+        if remaining == 0:
+            st.error("⏰ Trễ deadline!")
+            st.session_state.coins += task["penalty"]
+            st.session_state.job_mode = False
+            st.rerun()
+
+        st.write(task["question"])
+
+        ans = st.radio("Chọn", task["options"], key="job")
+
+        if st.button("✅ Nộp"):
+            st.session_state.total_job += 1
+            st.session_state.job_done_today += 1
+
+            if task["options"].index(ans) == task["correct"]:
+                st.success("🎉 Đúng!")
+                st.session_state.coins += task["salary"]
+                st.session_state.xp += task["salary"]
+                st.session_state.correct_job += 1
+            else:
+                st.error("❌ Sai!")
+                st.session_state.coins += task["penalty"]
+
+            update_level()
+            update_role()
+
+            st.session_state.job_mode = False
+            st.rerun()
 elif menu == "🧾 Case Study":
     st.write("Case Study")
 
