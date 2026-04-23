@@ -342,9 +342,15 @@ if menu == "📘 Học":
                         use_container_width=True
                     ):
                         # ===== LESSON =====
-                        if ltype == "lesson":
-                            st.session_state.current_lesson = lesson
-                            st.session_state.current_lesson_id = l_id
+        if ltype == "lesson":
+            st.session_state.current_lesson = lesson
+            st.session_state.current_lesson_id = l_id
+
+            # 🔥 RESET STATE (QUAN TRỌNG NHẤT)
+            st.session_state.lesson_start = None
+            st.session_state.start_quiz = False
+            st.session_state.quiz_index = 0
+            st.session_state.correct = 0
 
                         # ===== BOSS =====
                         elif ltype == "boss":
