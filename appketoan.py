@@ -3,6 +3,44 @@ import random
 import datetime
 import pandas as pd
 import streamlit.components.v1 as components
+def generate_job(level):
+    import random
+
+    questions = [
+        {
+            "q": "Mua hàng 100 triệu chưa trả tiền, ghi nhận?",
+            "options": [
+                "Nợ Hàng tồn kho / Có Phải trả",
+                "Nợ Tiền / Có Doanh thu",
+                "Nợ Chi phí / Có Tiền",
+                "Nợ Phải trả / Có Tiền"
+            ],
+            "correct": 0
+        },
+        {
+            "q": "Khách trả tiền 50 triệu, ghi nhận?",
+            "options": [
+                "Nợ Tiền / Có Doanh thu",
+                "Nợ Doanh thu / Có Tiền",
+                "Nợ Chi phí / Có Tiền",
+                "Nợ Tiền / Có Nợ phải thu"
+            ],
+            "correct": 0
+        }
+    ]
+
+    q = random.choice(questions)
+
+    return {
+        "title": f"Task Level {level}",
+        "department": "Accounting",
+        "question": q["q"],
+        "options": q["options"],
+        "correct": q["correct"],
+        "salary": 20,
+        "penalty": -10,
+        "time": 20
+    }
 from supabase import create_client
 
 # ================= 1. CẤU HÌNH =================
@@ -523,12 +561,12 @@ elif menu == "💼 Đi làm":
 
     # ===== 1. TẠO TASK =====
     if "daily_tasks" not in st.session_state or st.session_state.daily_tasks is None:
-
-        available_tasks = [
-            t for t in job_tasks
-            if t["level"] <= st.session_state.level
-            and t["level"] >= st.session_state.level - 2
-        ]
+    
+    st.session_state.daily_tasks = [
+        generate_job(st.session_state.level),
+        generate_job(st.session_state.level),
+        generate_job(st.session_state.level)
+    ]
 
         st.session_state.daily_tasks = random.sample(
             available_tasks,
