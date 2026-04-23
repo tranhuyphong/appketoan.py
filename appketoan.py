@@ -164,6 +164,8 @@ if "xp" not in st.session_state:
 
 if "level" not in st.session_state:
     st.session_state.level = 1
+if "bank" not in st.session_state:
+    st.session_state.bank = 0
 # ===== JOB SYSTEM =====
 if "job_mode" not in st.session_state:
     st.session_state.job_mode = False
@@ -246,6 +248,8 @@ st.sidebar.markdown(f"💰 Coins: {st.session_state.coins}")
 st.sidebar.markdown(f"⭐ XP: {st.session_state.xp}")
 st.sidebar.markdown(f"🏆 Level: {st.session_state.level}")
 st.sidebar.markdown(f"🧑‍💼 Role: {st.session_state.role}")
+st.sidebar.markdown(f"🏦 Bank: {st.session_state.bank}")
+st.sidebar.markdown(f"💼 Salary/month: {st.session_state.salary}")
 
 menu_options = [
     "📘 Học",
@@ -266,7 +270,7 @@ menu_options += [
     "🤖 Chấm bút toán",
     "📚 Từ điển",
     "🚨 Fraud Detection",
-    "🏆 Leaderboard"
+    "🏆 Leaderboard",
     "🎓 Chứng chỉ",
 ]
 
@@ -329,21 +333,6 @@ if menu == "📘 Học":
                     st.session_state.coins += 20
                     st.session_state.xp += 20
                     update_level()
-                    def update_role():
-                        lvl = st.session_state.level
-                    
-                        if lvl >= 10:
-                            st.session_state.role = "Manager"
-                            st.session_state.salary = 500
-                        elif lvl >= 7:
-                            st.session_state.role = "Senior"
-                            st.session_state.salary = 300
-                        elif lvl >= 4:
-                            st.session_state.role = "Staff"
-                            st.session_state.salary = 200
-                        else:
-                            st.session_state.role = "Intern"
-                            st.session_state.salary = 100
                     st.session_state.lesson_progress[l_id] = {"score": score}
                 else:
                     st.error(f"❌ FAIL {score}%")
@@ -513,15 +502,24 @@ elif menu == "🎓 Lớp học AI (Chat)":
     st.write("Chat")
 
 elif menu == "💼 Đi làm":
+# 💰 trả lương mỗi ngày (giả lập)
+if "last_salary_day" not in st.session_state:
+    st.session_state.last_salary_day = today
+
+if st.session_state.last_salary_day != today:
+    st.session_state.bank += st.session_state.salary
+    st.success(f"💰 Nhận lương: +{st.session_state.salary}")
+
+    st.session_state.last_salary_day = today
     st.header("💼 Đi làm kế toán")
 
     today = str(datetime.date.today())
 
     # reset mỗi ngày
     if st.session_state.last_job_date != today:
-        st.session_state.job_done_today = 0
-        st.session_state.last_job_date = today
-
+    st.session_state.job_done_today = 0
+    st.session_state.last_job_date = today
+    st.session_state.daily_tasks = None
     # KPI
     accuracy = 0
     if st.session_state.total_job > 0:
@@ -539,12 +537,16 @@ elif menu == "💼 Đi làm":
         st.stop()
 
     # lấy task theo level
-    available_tasks = [t for t in job_tasks if t["level"] <= st.session_state.level]
+    if "daily_tasks" not in st.session_state:
+    st.session_state.daily_tasks = random.sample(
+        [t for t in job_tasks if t["level"] <= st.session_state.level],
+        min(3, len(job_tasks))
+    )
 
     # nhận job
     if not st.session_state.job_mode:
         if st.button("📋 Nhận việc"):
-            st.session_state.job_task = random.choice(available_tasks)
+            st.session_state.job_task = task = st.session_state.daily_tasks[st.session_state.job_done_today]
             st.session_state.job_mode = True
             st.session_state.job_timer = None
             st.rerun()
@@ -580,10 +582,36 @@ elif menu == "💼 Đi làm":
                 st.session_state.coins += task["penalty"]
 
             update_level()
-            update_role()
+            def update_role():
+                lvl = st.session_state.level
+            
+                if lvl >= 10:
+                    st.session_state.role = "Manager"
+                    st.session_state.salary = 500
+                elif lvl >= 7:
+                    st.session_state.role = "Senior"
+                    st.session_state.salary = 300
+                elif lvl >= 4:
+                    st.session_state.role = "Staff"
+                    st.session_state.salary = 200
+                else:
+                    st.session_state.role = "Intern"
+                    st.session_state.salary = 100
 
-            st.session_state.job_mode = False
-            st.rerun()
+    st.session_state.job_mode = False
+    st.rerun()
+# 😈 SA THẢI
+if st.session_state.total_job >= 5 and accuracy < 50:
+    st.error("😈 Bạn bị sa thải do KPI quá thấp!")
+
+    st.session_state.role = "Intern"
+    st.session_state.salary = 50
+    st.session_state.bank = 0
+
+    st.session_state.total_job = 0
+    st.session_state.correct_job = 0
+
+    st.stop()
 elif menu == "🧾 Case Study":
     st.write("Case Study")
 
