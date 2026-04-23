@@ -221,11 +221,19 @@ st.sidebar.markdown(f"💰 Coins: {st.session_state.coins}")
 st.sidebar.markdown(f"⭐ XP: {st.session_state.xp}")
 st.sidebar.markdown(f"🏆 Level: {st.session_state.level}")
 
-menu = st.sidebar.radio("Menu", [
+menu_options = [
     "📘 Học",
     "🎓 Lớp học AI (Quiz)",
-    "🎓 Lớp học AI (Chat)",
-    "💼 Đi làm",
+    "🎓 Lớp học AI (Chat)"
+]
+
+# 🔒 unlock khi level >= 3
+if st.session_state.level >= 3:
+    menu_options.append("💼 Đi làm")
+else:
+    menu_options.append("🔒 Đi làm (Level 3)")
+
+menu_options += [
     "🧾 Case Study",
     "📊 Dashboard",
     "📊 Financial Report",
@@ -233,7 +241,10 @@ menu = st.sidebar.radio("Menu", [
     "📚 Từ điển",
     "🚨 Fraud Detection",
     "🏆 Leaderboard"
-])
+    "🎓 Chứng chỉ",
+]
+
+menu = st.sidebar.radio("Menu", menu_options)
 
 # ================= 📘 LEARNING =================
 import time
@@ -461,7 +472,10 @@ elif menu == "🎓 Lớp học AI (Chat)":
     st.write("Chat")
 
 elif menu == "💼 Đi làm":
-    st.write("Career")
+    st.success("💼 Chào mừng bạn đến công việc đầu tiên!")
+
+elif menu == "🔒 Đi làm (Level 3)":
+    st.warning("🔒 Bạn cần đạt Level 3 để mở khóa tính năng này!")
 
 elif menu == "🧾 Case Study":
     st.write("Case Study")
@@ -483,6 +497,17 @@ elif menu == "🚨 Fraud Detection":
 
 elif menu == "🏆 Leaderboard":
     st.write("Leaderboard")
+elif menu == "🎓 Chứng chỉ":
+    st.header("🎓 Mua chứng chỉ tốt nghiệp")
+
+    st.write("💰 Giá: 200 coins")
+
+    if st.session_state.coins >= 200:
+        if st.button("🎓 Mua chứng chỉ"):
+            st.session_state.coins -= 200
+            st.success("🏆 Bạn đã nhận chứng chỉ kế toán!")
+    else:
+        st.error("❌ Không đủ coins")
 
 # ================= LOGOUT =================
 if st.sidebar.button("🚪 Đăng xuất"):
