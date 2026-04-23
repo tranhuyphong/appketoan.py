@@ -68,87 +68,140 @@ if menu == "📘 Học":
     st.title("🗺️ Learning Map")
 
     # ================= LESSON VIEW =================
-    if st.session_state.current_lesson:
+    import time
 
-        lesson = st.session_state.current_lesson
+lesson = st.session_state.current_lesson
 
-        # FIX TIMER
-        if not st.session_state.lesson_start:
-            st.session_state.lesson_start = time.time()
+# ===== TIMER =====
+if not st.session_state.get("lesson_start"):
+    st.session_state.lesson_start = time.time()
 
-        elapsed = time.time() - st.session_state.lesson_start
+elapsed = time.time() - st.session_state.lesson_start
 
-        st.success(f"📖 {lesson['title']}")
+st.markdown(f"## 📖 {lesson['title']}")
 
-        # ===== PHASE 1 =====
-        if elapsed < 60 and not st.session_state.start_quiz:
+# ===== PROGRESS BAR =====
+progress = min(elapsed / 60, 1.0)
+st.progress(progress)
+st.caption(f"⏳ {int(60 - elapsed)}s")
 
-            st.write(lesson["content"])
+# ===== PHASE 1 =====
+if elapsed < 60 and not st.session_state.get("start_quiz"):
 
-            progress = min(elapsed / 60, 1.0)
-            st.progress(progress)
+    st.write(lesson["content"])
 
-            st.info(f"⏳ {int(60 - elapsed)}s")
+    if st.button("⚡ Skip → Quiz"):
+        st.session_state.start_quiz = True
+        st.rerun()
 
-            if st.button("👉 Làm quiz ngay"):
-                st.session_state.start_quiz = True
+    time.sleep(1)
+    st.rerun()
+
+# ===== PHASE 2 QUIZ =====
+else:
+
+    st.markdown("### 🧠 Quiz Challenge")
+
+    # ===== INIT =====
+    if "quiz_index" not in st.session_state:
+        st.session_state.quiz_index = 0
+        st.session_state.correct = 0
+
+    questions = lesson.get("quiz", [])
+
+    # ===== 🤖 AI GENERATE =====
+    if not questions:
+        base_q = [
+            ("Tài sản là gì?", ["Nguồn lực", "Chi phí", "Nợ"], 0),
+            ("Nợ là gì?", ["Nghĩa vụ", "Tài sản"], 0),
+            ("Doanh thu là gì?", ["Thu nhập", "Chi phí"], 0),
+        ]
+
+        questions = []
+        for q in base_q:
+            questions.append({
+                "q": q[0],
+                "a": random.sample(q[1], len(q[1])),
+                "correct": q[2]
+            })
+
+    i = st.session_state.quiz_index
+
+    # ===== QUIZ LOOP =====
+    if i < len(questions):
+
+        q = questions[i]
+
+        st.markdown(f"### ❓ {q['q']}")
+
+        choice = st.radio("Chọn đáp án", q["a"], key=f"quiz_{i}")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("✅ Trả lời"):
+
+                if q["a"].index(choice) == q["correct"]:
+                    st.session_state.correct += 1
+                    st.success("🔥 Đúng!")
+                else:
+                    st.error("❌ Sai!")
+
+                st.session_state.quiz_index += 1
                 st.rerun()
 
-            time.sleep(1)
-            st.rerun()
+        with col2:
+            if st.button("⏭ Bỏ qua"):
+                st.session_state.quiz_index += 1
+                st.rerun()
 
-        # ===== PHASE 2 QUIZ =====
+    # ===== RESULT =====
+    else:
+
+        total = len(questions)
+        correct = st.session_state.correct
+        score = int(correct / total * 100)
+
+        st.markdown("---")
+        st.markdown(f"## 📊 Kết quả: {score}%")
+
+        # ===== REWARD SYSTEM =====
+        if score >= 70:
+
+            reward = 20
+            if score == 100:
+                reward = 40  # bonus perfect
+
+            st.success(f"🎉 PASS +{reward} coins")
+            st.balloons()
+
+            st.session_state.coins += reward
+
+            l_id = st.session_state.current_lesson_id
+            st.session_state.lesson_progress[l_id] = {
+                "submitted": True,
+                "score": score
+            }
+
         else:
-            st.warning("🧠 Quiz kiểm tra")
+            st.error("❌ FAIL (cần ≥70%)")
 
-            questions = lesson.get("quiz", [])
+        # ===== STREAK SYSTEM =====
+        today = str(datetime.date.today())
+        if st.session_state.get("last_learned") != today:
+            st.session_state.streak += 1
+            st.session_state.last_learned = today
 
-            if not questions:
-                questions = [
-                    {"q": "Tài sản là gì?", "a": ["Nguồn lực", "Chi phí"], "correct": 0},
-                ]
+        st.info(f"🔥 Streak: {st.session_state.streak} ngày")
 
-            i = st.session_state.quiz_index
-
-            if i < len(questions):
-
-                q = questions[i]
-                st.write(f"### ❓ {q['q']}")
-
-                choice = st.radio("Chọn", q["a"], key=f"quiz_{i}")
-
-                if st.button("Trả lời"):
-                    if q["a"].index(choice) == q["correct"]:
-                        st.session_state.correct += 1
-
-                    st.session_state.quiz_index += 1
-                    st.rerun()
-
-            else:
-                total = len(questions)
-                score = int(st.session_state.correct / total * 100)
-
-                st.subheader("📊 Kết quả")
-
-                if score >= 70:
-                    st.success(f"🎉 PASS {score}% (+20 coins)")
-                    st.session_state.coins += 20
-
-                    st.session_state.lesson_progress[
-                        st.session_state.current_lesson_id
-                    ] = {"submitted": True, "score": score}
-
-                else:
-                    st.error(f"❌ FAIL {score}%")
-
-                if st.button("🔄 Quay lại map"):
-                    st.session_state.current_lesson = None
-                    st.session_state.lesson_start = None
-                    st.session_state.start_quiz = False
-                    st.session_state.quiz_index = 0
-                    st.session_state.correct = 0
-                    st.rerun()
-
+        # ===== RESET =====
+        if st.button("🔄 Học bài khác"):
+            st.session_state.current_lesson = None
+            st.session_state.lesson_start = None
+            st.session_state.start_quiz = False
+            st.session_state.quiz_index = 0
+            st.session_state.correct = 0
+            st.rerun()
     # ================= MAP =================
     else:
         for level in curriculum:
