@@ -314,32 +314,111 @@ if menu == "📘 Học":
                         st.rerun()
 
             # ===== BOSS =====
-            boss_id = f"{level_name}_{module['name']}_boss"
-            with cols[len(lessons) % 5]:
-                if st.button("👑", key=boss_id, disabled=not all_passed):
-                    score = random.randint(60, 100)
+            elif ltype == "boss":
+    st.subheader("👑 Boss Battle")
 
-                    if score >= 70:
-                        st.success(f"👑 Boss PASS {score}% (+50)")
-                        st.session_state.coins += 50
-                        st.session_state.lesson_progress[boss_id] = {"submitted": True, "score": score}
-                        save_coins()
-                    else:
-                        st.error("💀 Boss FAIL")
+    if "boss_questions" not in st.session_state:
+        st.session_state.boss_questions = random.sample(question_bank, 5)
+        st.session_state.boss_index = 0
+        st.session_state.boss_score = 0
+
+    i = st.session_state.boss_index
+    questions = st.session_state.boss_questions
+
+    if i < len(questions):
+        q = questions[i]
+
+        st.write(f"### 👑 {q['question']}")
+        ans = st.radio("Chọn", q["options"], key=f"boss_{i}")
+
+        if st.button("👉 Trả lời Boss"):
+            if q["options"].index(ans) == q["correct"]:
+                st.session_state.boss_score += 1
+
+            st.session_state.boss_index += 1
+            st.rerun()
+
+    else:
+        score = int(st.session_state.boss_score / len(questions) * 100)
+
+        if score >= 70:
+            st.success(f"👑 Boss PASS {score}% (+50 coins)")
+            st.session_state.coins += 50
+
+            st.session_state.lesson_progress[l_id] = {
+                "submitted": True,
+                "score": score
+            }
+
+            save_progress(l_id, score)
+            save_coins()
+
+        else:
+            st.error(f"💀 Boss FAIL {score}%")
+
+        if st.button("🔄 Làm lại Boss"):
+            st.session_state.boss_questions = None
+            st.session_state.boss_index = 0
+            st.session_state.boss_score = 0
+            st.rerun()
 
             # ===== EXAM =====
-            exam_id = f"{level_name}_{module['name']}_exam"
-            with cols[(len(lessons)+1) % 5]:
-                if st.button("🎓", key=exam_id, disabled=not all_passed):
-                    score = random.randint(60, 100)
+            elif ltype == "exam":
+    st.subheader("🎓 Final Exam")
 
-                    if score >= 70:
-                        st.success(f"🎓 Exam PASS {score}% (+100)")
-                        st.session_state.coins += 100
-                        st.session_state.lesson_progress[exam_id] = {"submitted": True, "score": score}
-                        save_coins()
-                    else:
-                        st.error("❌ Exam FAIL")
+    if "exam_questions" not in st.session_state:
+        st.session_state.exam_questions = random.sample(question_bank, 10)
+        st.session_state.exam_index = 0
+        st.session_state.exam_score = 0
+        st.session_state.exam_timer = time.time()
+
+    # ⏱️ Timer 120s
+    remaining = countdown_timer(120, key="exam_timer")
+
+    i = st.session_state.exam_index
+    questions = st.session_state.exam_questions
+
+    if remaining == 0:
+        st.error("⏰ Hết giờ!")
+        st.session_state.exam_index = len(questions)
+
+    if i < len(questions):
+        q = questions[i]
+
+        st.write(f"### 🎓 {q['question']}")
+        ans = st.radio("Chọn", q["options"], key=f"exam_{i}")
+
+        if st.button("👉 Trả lời"):
+            if q["options"].index(ans) == q["correct"]:
+                st.session_state.exam_score += 1
+
+            st.session_state.exam_index += 1
+            st.rerun()
+
+    else:
+        score = int(st.session_state.exam_score / len(questions) * 100)
+
+        if score >= 70:
+            st.success(f"🎓 PASS {score}% (+100 coins)")
+            st.session_state.coins += 100
+
+            st.session_state.lesson_progress[l_id] = {
+                "submitted": True,
+                "score": score
+            }
+
+            save_progress(l_id, score)
+            save_coins()
+
+        else:
+            st.error(f"❌ FAIL {score}%")
+
+        if st.button("🔁 Thi lại"):
+            st.session_state.exam_questions = None
+            st.session_state.exam_index = 0
+            st.session_state.exam_score = 0
+            st.session_state.exam_timer = time.time()
+            st.rerun()
 # ================= CÁC MENU KHÁC GIỮ NGUYÊN =================
 elif menu == "🎓 Lớp học AI (Quiz)":
     st.write("Quiz")
